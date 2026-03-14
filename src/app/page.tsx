@@ -2,16 +2,20 @@
 "use client";
 
 import Link from 'next/link';
-import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc } from '@/firebase';
+import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const db = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
   
   const filesQuery = useMemoFirebase(() => {
@@ -28,6 +32,14 @@ export default function Home() {
   }, [db]);
 
   const { data: adminProfile } = useDoc(adminProfileRef);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.refresh();
+  };
+
+  const adminName = adminProfile?.displayName || user?.displayName || 'Master Admin';
+  const adminPhoto = adminProfile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -46,12 +58,12 @@ export default function Home() {
               user ? (
                 <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 border-l border-border/40">
                   <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-xs font-bold leading-none">{adminProfile?.displayName || user.displayName || 'Administrator'}</span>
+                    <span className="text-xs font-bold leading-none">{adminName}</span>
                     <Link href="/admin/profile" className="text-[10px] text-muted-foreground hover:text-primary transition-colors">Edit Profile</Link>
                   </div>
                   <Link href="/admin">
                     <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all">
-                      <AvatarImage src={adminProfile?.photoURL || user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} />
+                      <AvatarImage src={adminPhoto} />
                       <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
                     </Avatar>
                   </Link>
@@ -102,27 +114,38 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar - MOVED TO RIGHT */}
+      {/* Discord-style Admin Profile Bar - Positioned RIGHT */}
       <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pl-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
           <div className="flex flex-col items-end text-right">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <span className="text-sm font-bold tracking-tight">{adminProfile?.displayName || 'Master Admin'}</span>
+              <span className="text-sm font-bold tracking-tight">{adminName}</span>
             </div>
             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">System Admin</span>
           </div>
           <div className="relative">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
-              <AvatarImage src={adminProfile?.photoURL || `https://picsum.photos/seed/admin/100/100`} />
+              <AvatarImage src={adminPhoto} />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 border-2 border-card rounded-full" title="Online" />
           </div>
           {user && (
-            <Link href="/admin" className="p-2 bg-primary/10 rounded-xl text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              <LayoutDashboard className="h-4 w-4" />
-            </Link>
+            <div className="flex items-center gap-1 pl-2 border-l border-border/40">
+              <Link href="/admin" className="p-2 bg-primary/10 rounded-xl text-primary hover:bg-primary/20 transition-colors" title="Admin Dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive hover:bg-destructive/10 sm:hidden" 
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
       </div>

@@ -44,12 +44,12 @@ export function MobileNav() {
         </SheetHeader>
         
         <div className="p-6 border-b border-border/40 bg-muted/20">
-          <Link href="/" className="flex items-center gap-2 mb-6">
+          <div className="flex items-center gap-2 mb-6">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
               <Database className="h-5 w-5" />
             </div>
             <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
-          </Link>
+          </div>
 
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-background border border-border/40">
              <Avatar className="h-10 w-10 border-2 border-primary/20">
@@ -84,7 +84,6 @@ export function MobileNav() {
           })}
         </nav>
 
-        {/* Improved Logout Button for Mobile */}
         <div className="p-4 border-t border-border/40 bg-muted/10">
           <Button 
             variant="destructive" 
