@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Content Locker - Secure AI-Powered Storage',
-  description: 'Manage and share your digital assets with AI-driven organization.',
+  title: 'G storage - Secure Digital Repository',
+  description: 'A simple and secure way to store and share your digital assets.',
 };
 
 export default function RootLayout({
