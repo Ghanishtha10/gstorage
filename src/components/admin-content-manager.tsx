@@ -6,6 +6,17 @@ import { Database } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from 'react';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
@@ -14,15 +25,17 @@ interface AdminContentManagerProps {
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
   const db = useFirestore();
   const { toast } = useToast();
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
-  const handleDelete = async (id: string) => {
-    if (!db) return;
+  const handleDelete = async () => {
+    if (!db || !fileToDelete) return;
     try {
-      await deleteDoc(doc(db, 'files', id));
+      await deleteDoc(doc(db, 'files', fileToDelete));
       toast({
         title: "File Deleted",
         description: "The item has been permanently removed.",
       });
+      setFileToDelete(null);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -48,7 +61,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               key={file.id} 
               file={file} 
               isAdmin 
-              onDelete={handleDelete} 
+              onDelete={(id) => setFileToDelete(id)} 
             />
           ))}
         </div>
@@ -58,6 +71,23 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <p className="text-muted-foreground">Your storage locker is currently empty.</p>
         </div>
       )}
+
+      <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && setFileToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the file metadata from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
