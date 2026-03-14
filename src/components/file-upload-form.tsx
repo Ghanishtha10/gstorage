@@ -1,18 +1,19 @@
+
 "use client";
 
 import { useState } from 'react';
-import { addFile } from '@/lib/store';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -20,28 +21,26 @@ export function FileUploadForm() {
     const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
-      setTags([]);
     }
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || !db) return;
     setIsUploading(true);
     
     try {
-      // In a real app, you'd upload to Storage first, then save to DB
-      // Here we simulate the URL since we focus on DB persistence
+      // Simulation of URL generation for prototype
       const fakeUrl = file.type.startsWith('image/') 
         ? `https://picsum.photos/seed/${Math.random()}/800/600`
         : `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`;
 
-      await addFile({
+      await addDoc(collection(db, 'files'), {
         name: file.name,
         url: fakeUrl,
         type: file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'document'),
         mimeType: file.type,
         size: file.size,
-        tags: tags.length > 0 ? tags : ['General'],
+        tags: ['General'],
         createdAt: new Date().toISOString(),
       });
 
@@ -50,7 +49,6 @@ export function FileUploadForm() {
         description: "Your file metadata is now persisted in Firestore.",
       });
       router.push('/admin');
-      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -68,7 +66,7 @@ export function FileUploadForm() {
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5 text-primary" /> New Content Upload
         </CardTitle>
-        <CardDescription>Upload a file to your secure storage locker.</CardDescription>
+        <CardDescription>Select a file to add to your secure storage locker.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -99,7 +97,7 @@ export function FileUploadForm() {
               </Button>
             </div>
 
-            <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold h-12" onClick={handleUpload} disabled={isUploading}>
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...

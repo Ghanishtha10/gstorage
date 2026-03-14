@@ -2,9 +2,8 @@
 "use client";
 
 import Link from 'next/link';
-import { useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useCollection, useMemoFirebase, useUser, useFirestore } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import { ContentCard } from '@/components/content-card';
 import { Database, Loader2, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Home() {
   const db = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   
   const filesQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -32,19 +31,21 @@ export default function Home() {
             </div>
             <span className="font-headline font-bold text-xl tracking-tight">G <span className="text-primary">storage</span></span>
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-4">
             <ThemeToggle />
-            {user ? (
-              <Button variant="outline" asChild className="text-sm font-medium border-primary/20 hover:bg-primary/10 hover:text-primary gap-2">
-                <Link href="/admin">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Admin Dashboard
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="ghost" asChild className="text-sm font-medium">
-                <Link href="/login">Admin Login</Link>
-              </Button>
+            {!isAuthLoading && (
+              user ? (
+                <Button variant="outline" asChild className="text-sm font-medium border-primary/20 hover:bg-primary/10 hover:text-primary gap-2">
+                  <Link href="/admin">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Admin Dashboard
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="ghost" asChild className="text-sm font-medium">
+                  <Link href="/login">Admin Login</Link>
+                </Button>
+              )
             )}
           </nav>
         </div>
