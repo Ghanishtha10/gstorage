@@ -1,9 +1,9 @@
 "use client";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, Edit3 } from "lucide-react";
-import Link from "next/link";
+import Link from "next/navigation";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,11 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+        <SheetHeader className="sr-only">
+          <SheetTitle>Navigation Menu</SheetTitle>
+          <SheetDescription>Access administrative tools and settings.</SheetDescription>
+        </SheetHeader>
+        
         <div className="p-6 border-b border-border/40">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
@@ -45,7 +50,7 @@ export function MobileNav() {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
