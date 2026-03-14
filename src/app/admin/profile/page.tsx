@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { updateProfile } from 'firebase/auth';
-import { collection, addDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Tag, Plus, Trash2, Save, Image as ImageIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function AdminProfilePage() {
   const { user } = useUser();
@@ -41,20 +44,33 @@ export default function AdminProfilePage() {
   const handleUpdateProfile = async () => {
     if (!auth.currentUser || !db) return;
     setIsUpdatingProfile(true);
+    
+    const finalPhotoURL = photoURL || `https://picsum.photos/seed/${auth.currentUser.uid}/200/200`;
+
     try {
       // Update Firebase Auth profile
       await updateProfile(auth.currentUser, {
         displayName,
-        photoURL: photoURL || `https://picsum.photos/seed/${auth.currentUser.uid}/200/200`
+        photoURL: finalPhotoURL
       });
 
-      // Update Public Profile in Firestore for everyone to see
-      await setDoc(doc(db, 'public_profiles', 'admin'), {
+      // Update Public Profile in Firestore
+      const profileData = {
         displayName,
-        photoURL: photoURL || `https://picsum.photos/seed/${auth.currentUser.uid}/200/200`,
+        photoURL: finalPhotoURL,
         updatedAt: new Date().toISOString(),
         role: 'System Administrator'
-      }, { merge: true });
+      };
+
+      setDoc(doc(db, 'public_profiles', 'admin'), profileData, { merge: true })
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: `public_profiles/admin`,
+            operation: 'write',
+            requestResourceData: profileData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
 
       toast({
         title: "Profile Updated",
@@ -75,14 +91,26 @@ export default function AdminProfilePage() {
     e.preventDefault();
     if (!newTagName.trim() || !db) return;
     setIsAddingTag(true);
+    
+    const tagId = newTagName.toLowerCase().replace(/\s+/g, '-');
+    const tagData = {
+      id: tagId,
+      name: newTagName.trim(),
+      isAISuggested: false,
+      createdAt: new Date().toISOString()
+    };
+
     try {
-      const tagId = newTagName.toLowerCase().replace(/\s+/g, '-');
-      await setDoc(doc(db, 'tags', tagId), {
-        id: tagId,
-        name: newTagName.trim(),
-        isAISuggested: false,
-        createdAt: new Date().toISOString()
-      });
+      setDoc(doc(db, 'tags', tagId), tagData)
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: `tags/${tagId}`,
+            operation: 'create',
+            requestResourceData: tagData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+        
       setNewTagName('');
       toast({ title: "Tag Added", description: `"${newTagName}" is now available.` });
     } catch (error) {
@@ -95,7 +123,14 @@ export default function AdminProfilePage() {
   const handleDeleteTag = async (id: string) => {
     if (!db) return;
     try {
-      await deleteDoc(doc(db, 'tags', id));
+      deleteDoc(doc(db, 'tags', id))
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: `tags/${id}`,
+            operation: 'delete',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
       toast({ title: "Tag Removed" });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Failed to delete tag." });

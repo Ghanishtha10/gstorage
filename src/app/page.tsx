@@ -46,12 +46,12 @@ export default function Home() {
               user ? (
                 <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 border-l border-border/40">
                   <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-xs font-bold leading-none">{user.displayName || 'Administrator'}</span>
+                    <span className="text-xs font-bold leading-none">{adminProfile?.displayName || user.displayName || 'Administrator'}</span>
                     <Link href="/admin/profile" className="text-[10px] text-muted-foreground hover:text-primary transition-colors">Edit Profile</Link>
                   </div>
                   <Link href="/admin">
                     <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all">
-                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} />
+                      <AvatarImage src={adminProfile?.photoURL || user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} />
                       <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
                     </Avatar>
                   </Link>
@@ -102,9 +102,16 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar - MOVED TO LEFT */}
-      <div className="fixed bottom-6 left-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
+      {/* Discord-style Admin Profile Bar - MOVED TO RIGHT */}
+      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pl-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
+          <div className="flex flex-col items-end text-right">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="h-3 w-3 text-primary" />
+              <span className="text-sm font-bold tracking-tight">{adminProfile?.displayName || 'Master Admin'}</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">System Admin</span>
+          </div>
           <div className="relative">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
               <AvatarImage src={adminProfile?.photoURL || `https://picsum.photos/seed/admin/100/100`} />
@@ -112,15 +119,8 @@ export default function Home() {
             </Avatar>
             <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 border-2 border-card rounded-full" title="Online" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold tracking-tight">{adminProfile?.displayName || 'Master Admin'}</span>
-              <ShieldCheck className="h-3 w-3 text-primary" />
-            </div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">System Admin</span>
-          </div>
           {user && (
-            <Link href="/admin" className="ml-4 p-2 bg-primary/10 rounded-xl text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+            <Link href="/admin" className="p-2 bg-primary/10 rounded-xl text-primary opacity-0 group-hover:opacity-100 transition-opacity">
               <LayoutDashboard className="h-4 w-4" />
             </Link>
           )}
