@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -83,10 +84,11 @@ export function MobileNav() {
           })}
         </nav>
 
+        {/* Improved Logout Button for Mobile */}
         <div className="p-4 border-t border-border/40 bg-muted/10">
           <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-xl font-bold bg-destructive/5"
+            variant="destructive" 
+            className="w-full justify-start gap-3 h-12 rounded-xl font-bold shadow-lg shadow-destructive/10"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" /> Logout Account

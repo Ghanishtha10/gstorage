@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -101,7 +102,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar */}
+      {/* Discord-style Admin Profile Bar - MOVED TO LEFT */}
       <div className="fixed bottom-6 left-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
           <div className="relative">
