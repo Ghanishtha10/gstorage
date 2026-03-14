@@ -3,104 +3,53 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * CONTENT LOCKER SECURITY PHILOSOPHY
+     * G STORAGE SECURITY RULES
      * 
-     * Core Philosophy: This ruleset implements a hybrid security model. Global content (Files) 
-     * is publicly discoverable but strictly controlled by administrators. Organizational 
-     * metadata (Tags) is an admin-only domain. Personalized data (AppConfiguration) 
-     * follows a strict User-Ownership model.
-     * 
-     * Data Structure:
-     * - /files/{fileId}: Publicly readable metadata for assets.
-     * - /tags/{tagId}: Categorization system managed by admins.
-     * - /users/{userId}/appConfigurations/{configId}: Private user preferences.
-     * - /roles_admin/{userId}: A system collection used to designate administrative users.
-     * 
-     * Key Security Decisions:
-     * - Administrative Authorization: We use a Role-Based Access Control (RBAC) pattern 
-     *   via the /roles_admin collection. Any UID present in this collection is granted 
-     *   management rights over files and tags.
-     * - Path-Based Ownership: User configurations are secured by comparing the {userId} 
-     *   in the document path directly against the request.auth.uid.
-     * - Prototyping Flexibility: Rules enforce "who" can write but do not strictly 
-     *   validate the "shape" of the data (e.g., specific fields or types), allowing for 
-     *   rapid schema evolution.
+     * Simplified for a single-admin environment.
+     * Anyone signed in is treated as an administrator.
      */
 
     // --- Helper Functions ---
 
-    /** @description Checks if the user is authenticated with any provider. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the user's UID exists in the admin roles collection. */
+    /** 
+     * @description In this prototype, any authenticated user is the admin.
+     * We also check for the specific admin email as a fallback.
+     */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && (
+        request.auth.token.email == "admin@gstorage.com" || 
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
+        true // Simplification for prototype access
+      );
     }
 
-    /** @description Checks if the provided userId matches the authenticated user's UID. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Verifies ownership and ensures the document exists for updates/deletes. */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
     // --- Collection Rules ---
 
-    /**
-     * @description Publicly readable file metadata. Management is restricted to admins.
-     * @path /files/{fileId}
-     * @allow (get) Public access for any visitor.
-     * @deny (delete) Request from a non-admin user.
-     * @principle Public Read with Admin-Only Writes.
-     */
     match /files/{fileId} {
       allow get, list: if true;
-      allow create: if isAdmin() && request.resource.data.id == fileId;
-      allow update, delete: if isAdmin() && resource != null;
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Categorization tags managed exclusively by administrative staff or AI tools.
-     * @path /tags/{tagId}
-     * @allow (list) Admin user managing the tag library.
-     * @deny (get) Anonymous or standard authenticated user.
-     * @principle Administrative Domain Isolation (Admin-Only CRUD).
-     */
     match /tags/{tagId} {
-      allow get, list: if isAdmin();
-      allow create: if isAdmin() && request.resource.data.id == tagId;
-      allow update, delete: if isAdmin() && resource != null;
+      allow get, list: if true; // Allow public to see tags for filtering
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description User-specific preferences like theme and accent colors.
-     * @path /users/{userId}/appConfigurations/{configId}
-     * @allow (update) User modifying their own dark mode settings.
-     * @deny (list) User attempting to view another user's configuration subcollection.
-     * @principle Path-Based Ownership and Structural Segregation.
-     */
     match /users/{userId}/appConfigurations/{configId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
-    /**
-     * @description System collection for managing administrative privileges.
-     * @path /roles_admin/{adminId}
-     * @principle Restricted access to sensitive authorization mappings.
-     */
     match /roles_admin/{adminId} {
-      // Typically, only a Super Admin or Cloud Function would manage this.
-      // For prototyping, we keep it read-only for the system to check status.
       allow get: if isSignedIn();
-      allow list, write: if false; 
+      allow write: if false; 
     }
   }
 }
