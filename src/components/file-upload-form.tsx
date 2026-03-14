@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from 'react';
-import { suggestContentTags } from '@/ai/flows/suggest-content-tags-flow';
+import { addFile } from '@/lib/store';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, Loader2, Sparkles, FileText, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<string[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -25,49 +24,42 @@ export function FileUploadForm() {
     }
   };
 
-  const analyzeContent = async () => {
+  const handleUpload = async () => {
     if (!file) return;
-
-    setIsAnalyzing(true);
+    setIsUploading(true);
+    
     try {
-      // Simulate reading file as data URI
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const dataUri = reader.result as string;
-        const result = await suggestContentTags({
-          content: dataUri,
-          mimeType: file.type,
-          fileName: file.name,
-        });
-        setTags(result.tags);
-        toast({
-          title: "AI Analysis Complete",
-          description: `Suggested ${result.tags.length} tags for your file.`,
-        });
-      };
-      reader.readAsDataURL(file);
+      // In a real app, you'd upload to Storage first, then save to DB
+      // Here we simulate the URL since we focus on DB persistence
+      const fakeUrl = file.type.startsWith('image/') 
+        ? `https://picsum.photos/seed/${Math.random()}/800/600`
+        : `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`;
+
+      await addFile({
+        name: file.name,
+        url: fakeUrl,
+        type: file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'document'),
+        mimeType: file.type,
+        size: file.size,
+        tags: tags.length > 0 ? tags : ['General'],
+        createdAt: new Date().toISOString(),
+      });
+
+      toast({
+        title: "File Saved",
+        description: "Your file metadata is now persisted in Firestore.",
+      });
+      router.push('/admin');
+      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Analysis Failed",
-        description: "Could not analyze file content.",
+        title: "Upload Failed",
+        description: "Error saving file metadata to Firestore.",
       });
     } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleUpload = () => {
-    setIsUploading(true);
-    setTimeout(() => {
       setIsUploading(false);
-      setFile(null);
-      setTags([]);
-      toast({
-        title: "File Uploaded Successfully",
-        description: "Your content is now live in the public gallery.",
-      });
-    }, 1500);
+    }
   };
 
   return (
@@ -76,7 +68,7 @@ export function FileUploadForm() {
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5 text-primary" /> New Content Upload
         </CardTitle>
-        <CardDescription>Upload a file and use AI to automatically generate search tags.</CardDescription>
+        <CardDescription>Upload a file to your secure storage locker.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -87,7 +79,7 @@ export function FileUploadForm() {
                 <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <h4 className="font-semibold text-lg">Choose a file or drag and drop</h4>
-              <p className="text-sm text-muted-foreground">JPG, PNG, PDF, or MP4 (Max 20MB)</p>
+              <p className="text-sm text-muted-foreground">Any file type (Max 20MB)</p>
             </label>
           </div>
         ) : (
@@ -107,45 +99,14 @@ export function FileUploadForm() {
               </Button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Content Tags</Label>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-8 gap-2 text-xs border-primary/40 text-primary hover:bg-primary/5"
-                  onClick={analyzeContent}
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                  Generate with AI
-                </Button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 min-h-[40px] p-3 rounded-lg bg-background/50 border border-border/40">
-                {tags.length > 0 ? (
-                  tags.map((tag, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1 pr-1 bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20">
-                      {tag}
-                      <Button variant="ghost" size="icon" className="h-3 w-3 p-0 hover:bg-transparent" onClick={() => setTags(t => t.filter((_, idx) => idx !== i))}>
-                        <X className="h-2 w-2" />
-                      </Button>
-                    </Badge>
-                  ))
-                ) : (
-                  <span className="text-xs text-muted-foreground italic">No tags assigned. Click AI Generate to start.</span>
-                )}
-              </div>
-            </div>
-
             <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold h-12" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Confirm & Upload to Locker
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> Confirm & Save to Firestore
                 </>
               )}
             </Button>

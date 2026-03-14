@@ -1,33 +1,33 @@
 "use client";
 
-import { useState } from 'react';
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
-import { deleteFile } from '@/lib/store';
-import { useToast } from '@/hooks/use-toast';
 import { Database } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
 }
 
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
-  const [files, setFiles] = useState<ContentFile[]>(initialFiles);
+  const db = useFirestore();
   const { toast } = useToast();
 
   const handleDelete = async (id: string) => {
+    if (!db) return;
     try {
-      await deleteFile(id);
-      setFiles((prev) => prev.filter((f) => f.id !== id));
+      await deleteDoc(doc(db, 'files', id));
       toast({
         title: "File Deleted",
-        description: "The item has been removed from your storage locker.",
+        description: "The item has been permanently removed.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Delete Failed",
-        description: "Could not remove the file at this time.",
+        description: "Could not remove the file from Firestore.",
       });
     }
   };
@@ -37,13 +37,13 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-headline font-bold">Content Library</h2>
         <div className="text-sm text-muted-foreground">
-          {files.length} items total
+          {initialFiles.length} items total
         </div>
       </div>
       
-      {files.length > 0 ? (
+      {initialFiles.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {files.map((file) => (
+          {initialFiles.map((file) => (
             <ContentCard 
               key={file.id} 
               file={file} 

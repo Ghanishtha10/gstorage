@@ -1,55 +1,47 @@
 import { ContentFile } from './types';
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  orderBy, 
+  getFirestore 
+} from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 
-// Mock data
-let mockFiles: ContentFile[] = [
-  {
-    id: '1',
-    name: 'Architectural Blueprint.jpg',
-    url: 'https://picsum.photos/seed/arch1/800/600',
-    type: 'image',
-    mimeType: 'image/jpeg',
-    size: 1024 * 500,
-    tags: ['Architecture', 'Design', 'Modern'],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Q3 Marketing Strategy.pdf',
-    url: 'https://placehold.co/600x400/1F2D30/73B6CC?text=Marketing+Strategy+PDF',
-    type: 'document',
-    mimeType: 'application/pdf',
-    size: 1024 * 1200,
-    tags: ['Business', 'Strategy', 'Marketing'],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Product Reveal Video.mp4',
-    url: 'https://picsum.photos/seed/vid1/1200/800',
-    type: 'video',
-    mimeType: 'video/mp4',
-    size: 1024 * 1024 * 15,
-    tags: ['Product', 'Launch', 'Video'],
-    createdAt: new Date().toISOString(),
-  }
-];
+// Helper to get firestore instance
+const getDb = () => {
+  const { firestore } = initializeFirebase();
+  return firestore;
+};
 
-export async function getFiles() {
-  return [...mockFiles].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+export async function getFiles(): Promise<ContentFile[]> {
+  const db = getDb();
+  const filesCol = collection(db, 'files');
+  const q = query(filesCol, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  } as ContentFile));
 }
 
-export async function addFile(file: ContentFile) {
-  mockFiles = [file, ...mockFiles];
-  return file;
+export async function addFile(file: Omit<ContentFile, 'id'>) {
+  const db = getDb();
+  const docRef = await addDoc(collection(db, 'files'), {
+    ...file,
+    createdAt: new Date().toISOString(),
+  });
+  return { id: docRef.id, ...file } as ContentFile;
 }
 
 export async function deleteFile(id: string) {
-  mockFiles = mockFiles.filter(f => f.id !== id);
+  const db = getDb();
+  await deleteDoc(doc(db, 'files', id));
 }
 
 export async function updateFileTags(id: string, tags: string[]) {
-  const file = mockFiles.find(f => f.id === id);
-  if (file) {
-    file.tags = tags;
-  }
+  // Logic for updating tags if needed
 }

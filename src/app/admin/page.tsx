@@ -1,26 +1,56 @@
-import { getFiles } from '@/lib/store';
+"use client";
+
+import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
+import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, HardDrive, TrendingUp, Sparkles, Plus } from 'lucide-react';
+import { FileText, HardDrive, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { AdminContentManager } from '@/components/admin-content-manager';
+import { useToast } from '@/hooks/use-toast';
 
-export default async function AdminDashboard() {
-  const files = await getFiles();
-  const totalSize = files.reduce((acc, f) => acc + f.size, 0);
+export default function AdminDashboard() {
+  const db = useFirestore();
+  const { toast } = useToast();
+
+  const filesQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'files'), orderBy('createdAt', 'desc'));
+  }, [db]);
+
+  const { data: files, isLoading } = useCollection(filesQuery);
+
+  const totalSize = files?.reduce((acc, f) => acc + (f.size || 0), 0) || 0;
   const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
 
   const stats = [
-    { label: 'Total Files', value: files.length, icon: FileText, color: 'text-primary' },
+    { label: 'Total Files', value: files?.length || 0, icon: FileText, color: 'text-primary' },
     { label: 'Storage Used', value: `${totalSizeMB} MB`, icon: HardDrive, color: 'text-secondary' },
   ];
+
+  const handleDelete = async (id: string) => {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, 'files', id));
+      toast({
+        title: "File Deleted",
+        description: "The item has been permanently removed.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: "Could not remove the file from Firestore.",
+      });
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold mb-1">System Overview</h1>
-          <p className="text-muted-foreground">Manage your repository and view real-time performance metrics.</p>
+          <p className="text-muted-foreground">Manage your repository and assets in one place.</p>
         </div>
         <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-bold px-6 shadow-lg shadow-primary/20">
           <Link href="/admin/upload">
@@ -29,7 +59,7 @@ export default async function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {stats.map((stat, i) => (
           <Card key={i} className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -37,35 +67,22 @@ export default async function AdminDashboard() {
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center gap-1 text-[10px] text-secondary mt-1">
-                <TrendingUp className="h-3 w-3" />
-                <span>+12% from last month</span>
+              <div className="text-2xl font-bold">
+                {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/30" /> : stat.value}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <AdminContentManager initialFiles={files} />
-
-      <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
-        <CardContent className="p-8 flex flex-col md:flex-row items-center gap-6">
-           <div className="h-16 w-16 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shrink-0 shadow-xl shadow-primary/20">
-             <Sparkles className="h-8 w-8" />
-           </div>
-           <div className="space-y-1">
-             <h3 className="text-xl font-bold">AI Organizes, You Relax.</h3>
-             <p className="text-sm text-muted-foreground max-w-xl">
-               Our advanced GenAI models analyze every file you upload to suggest relevant tags. 
-               This keeps your locker clean and searchable without the manual overhead.
-             </p>
-           </div>
-           <Button variant="outline" className="ml-auto border-primary text-primary hover:bg-primary/5 whitespace-nowrap">
-             Learn about Tagging
-           </Button>
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin mb-4" />
+          <p>Loading library...</p>
+        </div>
+      ) : (
+        <AdminContentManager initialFiles={files || []} />
+      )}
     </div>
   );
 }
