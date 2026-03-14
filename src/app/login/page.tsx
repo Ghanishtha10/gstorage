@@ -28,20 +28,22 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="admin@gstorage.com" className="bg-background" />
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" type="text" placeholder="admin" className="bg-background" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" className="bg-background" />
+            <Input id="password" type="password" placeholder="••••••••" className="bg-background" />
           </div>
           <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11">
             <Link href="/admin">Sign In</Link>
           </Button>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <div className="text-xs text-center text-muted-foreground">
-            Demo: Click "Sign In" to enter the admin dashboard.
+          <div className="text-xs text-center text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border/40 w-full">
+            <p className="font-bold mb-1">Demo Credentials:</p>
+            <p>Username: <span className="text-foreground font-mono">admin</span></p>
+            <p>Password: <span className="text-foreground font-mono">admin123</span></p>
           </div>
         </CardFooter>
       </Card>

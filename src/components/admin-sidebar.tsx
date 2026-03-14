@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, Upload, LogOut, Database, User } from 'lucide-react';
+import { LayoutDashboard, Upload, LogOut, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -53,7 +53,7 @@ export function AdminSidebar() {
            </Avatar>
            <div className="flex flex-col overflow-hidden">
              <span className="text-sm font-semibold truncate">Admin User</span>
-             <span className="text-[10px] text-muted-foreground truncate">admin@gstorage.com</span>
+             <span className="text-[10px] text-muted-foreground truncate">@admin</span>
            </div>
         </div>
         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">

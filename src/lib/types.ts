@@ -13,6 +13,6 @@ export interface ContentFile {
 
 export interface AdminUser {
   id: string;
-  email: string;
+  username: string;
   name: string;
 }
