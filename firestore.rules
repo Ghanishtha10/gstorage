@@ -39,12 +39,17 @@ service cloud.firestore {
     }
 
     match /tags/{tagId} {
-      allow get, list: if true; // Allow public to see tags for filtering
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
     match /users/{userId}/appConfigurations/{configId} {
       allow read, write: if isOwner(userId);
+    }
+
+    match /public_profiles/{profileId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /roles_admin/{adminId} {

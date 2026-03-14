@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { updateProfile } from 'firebase/auth';
-import { collection, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,13 +39,23 @@ export default function AdminProfilePage() {
   }, [user]);
 
   const handleUpdateProfile = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser || !db) return;
     setIsUpdatingProfile(true);
     try {
+      // Update Firebase Auth profile
       await updateProfile(auth.currentUser, {
         displayName,
         photoURL: photoURL || `https://picsum.photos/seed/${auth.currentUser.uid}/200/200`
       });
+
+      // Update Public Profile in Firestore for everyone to see
+      await setDoc(doc(db, 'public_profiles', 'admin'), {
+        displayName,
+        photoURL: photoURL || `https://picsum.photos/seed/${auth.currentUser.uid}/200/200`,
+        updatedAt: new Date().toISOString(),
+        role: 'System Administrator'
+      }, { merge: true });
+
       toast({
         title: "Profile Updated",
         description: "Your administrative profile has been saved successfully.",
@@ -68,7 +77,7 @@ export default function AdminProfilePage() {
     setIsAddingTag(true);
     try {
       const tagId = newTagName.toLowerCase().replace(/\s+/g, '-');
-      await addDoc(collection(db, 'tags'), {
+      await setDoc(doc(db, 'tags', tagId), {
         id: tagId,
         name: newTagName.trim(),
         isAISuggested: false,

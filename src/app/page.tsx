@@ -1,10 +1,10 @@
 "use client";
 
 import Link from 'next/link';
-import { useCollection, useMemoFirebase, useUser, useFirestore } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,14 @@ export default function Home() {
   }, [db]);
 
   const { data: files, isLoading } = useCollection(filesQuery);
+
+  // Fetch admin profile for the Discord-style bar
+  const adminProfileRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'public_profiles', 'admin');
+  }, [db]);
+
+  const { data: adminProfile } = useDoc(adminProfileRef);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -46,12 +54,6 @@ export default function Home() {
                       <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
                     </Avatar>
                   </Link>
-                  <Button variant="outline" size="sm" asChild className="hidden md:flex text-xs font-bold border-primary/20 hover:bg-primary/10 hover:text-primary gap-2">
-                    <Link href="/admin">
-                      <LayoutDashboard className="h-3 w-3" />
-                      Dashboard
-                    </Link>
-                  </Button>
                 </div>
               ) : (
                 <Button variant="ghost" size="sm" asChild className="text-sm font-medium">
@@ -63,7 +65,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main className="flex-1 container mx-auto px-4 py-12 pb-32">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6">
             <div>
@@ -98,6 +100,31 @@ export default function Home() {
           )}
         </section>
       </main>
+
+      {/* Discord-style Admin Profile Bar */}
+      <div className="fixed bottom-6 left-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
+          <div className="relative">
+            <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
+              <AvatarImage src={adminProfile?.photoURL || `https://picsum.photos/seed/admin/100/100`} />
+              <AvatarFallback>AD</AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 border-2 border-card rounded-full" title="Online" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold tracking-tight">{adminProfile?.displayName || 'Master Admin'}</span>
+              <ShieldCheck className="h-3 w-3 text-primary" />
+            </div>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">System Admin</span>
+          </div>
+          {user && (
+            <Link href="/admin" className="ml-4 p-2 bg-primary/10 rounded-xl text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              <LayoutDashboard className="h-4 w-4" />
+            </Link>
+          )}
+        </div>
+      </div>
 
       <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
