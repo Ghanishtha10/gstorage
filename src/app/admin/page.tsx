@@ -1,9 +1,9 @@
 import { getFiles } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Users, HardDrive, TrendingUp, Sparkles, Plus } from 'lucide-react';
+import { FileText, HardDrive, TrendingUp, Sparkles, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ContentCard } from '@/components/content-card';
+import { AdminContentManager } from '@/components/admin-content-manager';
 
 export default async function AdminDashboard() {
   const files = await getFiles();
@@ -13,8 +13,6 @@ export default async function AdminDashboard() {
   const stats = [
     { label: 'Total Files', value: files.length, icon: FileText, color: 'text-primary' },
     { label: 'Storage Used', value: `${totalSizeMB} MB`, icon: HardDrive, color: 'text-secondary' },
-    { label: 'Public Views', value: '1.2k', icon: Users, color: 'text-primary' },
-    { label: 'AI Tag Hits', value: '458', icon: Sparkles, color: 'text-secondary' },
   ];
 
   return (
@@ -31,7 +29,7 @@ export default async function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
         {stats.map((stat, i) => (
           <Card key={i} className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -49,20 +47,7 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-headline font-bold">Recent Content</h2>
-          <Button variant="link" asChild className="text-primary p-0 h-auto font-semibold">
-            <Link href="/admin/files">View All Manager</Link>
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {files.slice(0, 4).map((file) => (
-            <ContentCard key={file.id} file={file} isAdmin />
-          ))}
-        </div>
-      </section>
+      <AdminContentManager initialFiles={files} />
 
       <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
         <CardContent className="p-8 flex flex-col md:flex-row items-center gap-6">
