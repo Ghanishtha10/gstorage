@@ -1,21 +1,30 @@
+
 "use client";
 
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, Edit3 } from "lucide-react";
+import { Menu, LayoutDashboard, Upload, LogOut, Database, Home } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
   { label: 'Upload', icon: Upload, href: '/admin/upload' },
-  { label: 'Edit Files', icon: Edit3, href: '/admin' },
-  { label: 'Public Site', icon: Home, href: '/' },
+  { label: 'Files Gallery', icon: Home, href: '/' },
 ];
 
 export function MobileNav() {
   const pathname = usePathname();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
 
   return (
     <Sheet>
@@ -62,10 +71,12 @@ export function MobileNav() {
         </nav>
 
         <div className="p-4 border-t border-border/40">
-          <Button asChild variant="ghost" className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
-            <Link href="/">
-              <LogOut className="h-4 w-4" /> Logout
-            </Link>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" /> Logout
           </Button>
         </div>
       </SheetContent>
