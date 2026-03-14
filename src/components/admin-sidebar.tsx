@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { LayoutDashboard, Upload, LogOut, Database, Edit3, Home } from 'lucide-react';
+import { LayoutDashboard, Upload, LogOut, Database, UserCircle, Home, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +14,7 @@ import { signOut } from 'firebase/auth';
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
   { label: 'Upload', icon: Upload, href: '/admin/upload' },
+  { label: 'Profile Settings', icon: UserCircle, href: '/admin/profile' },
   { label: 'Files Gallery', icon: Home, href: '/' },
 ];
 
@@ -63,9 +64,9 @@ export function AdminSidebar() {
       </nav>
 
       <div className="p-4 mt-auto border-t border-border/40 space-y-4">
-        <div className="flex items-center gap-3 px-4 py-2">
+        <div className="flex items-center gap-3 px-4 py-2 bg-muted/20 rounded-xl border border-border/10">
            <Avatar className="h-9 w-9 border-2 border-primary/20">
-             <AvatarImage src={`https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
+             <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
              <AvatarFallback>AD</AvatarFallback>
            </Avatar>
            <div className="flex flex-col overflow-hidden">
