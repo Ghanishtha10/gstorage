@@ -2,7 +2,7 @@
 
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
-import { Database } from 'lucide-react';
+import { Database, Loader2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -26,22 +26,26 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   const db = useFirestore();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (!db || !fileToDelete) return;
+    setIsDeleting(true);
     try {
       await deleteDoc(doc(db, 'files', fileToDelete));
       toast({
         title: "File Deleted",
-        description: "The item has been permanently removed.",
+        description: "The item has been permanently removed from Firestore.",
       });
       setFileToDelete(null);
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Delete Failed",
-        description: "Could not remove the file from Firestore.",
+        description: "Could not remove the file from the database.",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -72,18 +76,26 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         </div>
       )}
 
-      <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && setFileToDelete(null)}>
+      <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && !isDeleting && setFileToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this file?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the file metadata from the database.
+              This action is permanent and will remove the file's metadata from G storage. You cannot undo this.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }} 
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {isDeleting ? "Deleting..." : "Permanently Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
