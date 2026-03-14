@@ -1,3 +1,5 @@
+"use client";
+
 import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -5,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Image as ImageIcon, Video, File, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from 'react';
 
 interface ContentCardProps {
   file: ContentFile;
@@ -13,12 +16,23 @@ interface ContentCardProps {
 }
 
 export function ContentCard({ file, isAdmin, onDelete }: ContentCardProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const Icon = {
     image: ImageIcon,
     video: Video,
     document: FileText,
     other: File,
   }[file.type];
+
+  // Avoid hydration mismatch for relative time operations
+  const timeAgo = mounted 
+    ? formatDistanceToNow(new Date(file.createdAt)) + ' ago' 
+    : 'Recently';
 
   return (
     <Card className="group overflow-hidden transition-all hover:ring-2 hover:ring-primary/50 bg-card border-border/40">
@@ -48,7 +62,7 @@ export function ContentCard({ file, isAdmin, onDelete }: ContentCardProps) {
           <Icon className="h-4 w-4 text-primary" />
         </div>
         <p className="text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(file.createdAt))} ago • {(file.size / (1024 * 1024)).toFixed(2)} MB
+          {timeAgo} • {(file.size / (1024 * 1024)).toFixed(2)} MB
         </p>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">
