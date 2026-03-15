@@ -5,7 +5,7 @@ import { MobileNav } from '@/components/mobile-nav';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, Home, LogOut, Database } from 'lucide-react';
+import { Loader2, Database, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
@@ -48,17 +48,21 @@ export default function AdminLayout({
       <AdminSidebar />
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/50 backdrop-blur shrink-0 z-20">
-          <div className="md:hidden flex items-center gap-3 mr-4">
-            <MobileNav />
+          <div className="flex items-center gap-3 mr-4">
+            <div className="md:hidden">
+              <MobileNav />
+            </div>
             <Link href="/" className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
               <span className="font-headline font-bold text-sm tracking-tight">G <span className="text-primary">storage</span></span>
             </Link>
           </div>
           
-          <h2 className="hidden md:block text-sm font-bold text-muted-foreground uppercase tracking-widest truncate">
-            Admin / <span className="text-primary">G storage</span>
-          </h2>
+          <div className="hidden md:block ml-4">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest truncate">
+              Admin <span className="text-primary">Console</span>
+            </h2>
+          </div>
           
           <div className="ml-auto flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:flex items-center gap-2">
@@ -77,7 +81,7 @@ export default function AdminLayout({
             </Button>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-background/50 scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-background/50 scroll-smooth">
           <div className="max-w-7xl mx-auto w-full pb-12">
             {children}
           </div>

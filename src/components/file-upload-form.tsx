@@ -103,9 +103,13 @@ export function FileUploadForm() {
           'state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
+            // Force a minimum of 1% to show it started
+            setUploadProgress(Math.max(progress, 1));
           },
-          (error) => reject(error),
+          (error) => {
+            console.error("Storage error:", error);
+            reject(error);
+          },
           async () => {
             const url = await getDownloadURL(uploadTask.snapshot.ref);
             resolve(url);
@@ -148,7 +152,6 @@ export function FileUploadForm() {
       });
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 
@@ -159,7 +162,7 @@ export function FileUploadForm() {
           <HardDrive className="h-5 w-5" />
           <span>Asset Upload</span>
         </CardTitle>
-        <CardDescription className="text-xs">Securely add new files to the storage locker.</CardDescription>
+        <CardDescription className="text-xs">Select a file to begin the transfer.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
@@ -199,8 +202,8 @@ export function FileUploadForm() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between p-4 rounded-2xl border bg-muted/20 border-border/40 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center shadow-inner">
+              <div className="flex items-center gap-4 overflow-hidden">
+                <div className="h-12 w-12 shrink-0 bg-primary/10 rounded-xl flex items-center justify-center shadow-inner">
                   {fileType === 'image' && <ImageIcon className="h-6 w-6 text-primary" />}
                   {fileType === 'video' && <Video className="h-6 w-6 text-primary" />}
                   {fileType === 'audio' && <Headphones className="h-6 w-6 text-primary" />}
@@ -214,7 +217,7 @@ export function FileUploadForm() {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full">
+              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0" disabled={isUploading}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
@@ -226,32 +229,35 @@ export function FileUploadForm() {
                   id="displayName" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                  disabled={isUploading}
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Kind / Category</Label>
+                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Category</Label>
                 <input 
                   id="fileType" 
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
-                  placeholder="e.g. PDF, Archive, Source..."
+                  disabled={isUploading}
+                  placeholder="e.g. PDF, Archive..."
                   className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-4">
-                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail Configuration</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail</Label>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input 
                     id="thumbUrl" 
-                    value={thumbFile ? `[Asset Selected: ${thumbFile.name}]` : customThumbUrl} 
+                    value={thumbFile ? `[File Selected: ${thumbFile.name}]` : customThumbUrl} 
                     onChange={(e) => {
                       setCustomThumbUrl(e.target.value);
                       setThumbFile(null);
                     }}
-                    placeholder="URL or use the upload button..."
+                    disabled={isUploading}
+                    placeholder="URL or upload an image..."
                     className="flex h-12 flex-1 rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background transition-all"
                     readOnly={!!thumbFile}
                   />
@@ -259,6 +265,7 @@ export function FileUploadForm() {
                   <Button 
                     type="button" 
                     variant="outline" 
+                    disabled={isUploading}
                     onClick={() => thumbInputRef.current?.click()} 
                     className="h-12 px-6 border-primary/20 hover:border-primary/50 text-[10px] font-bold uppercase tracking-widest rounded-xl bg-background/50"
                   >
@@ -273,25 +280,25 @@ export function FileUploadForm() {
               onClick={handleUpload} 
               disabled={isUploading || !file}
             >
-              {isUploading ? (
-                <div className="flex flex-col items-center justify-center w-full gap-2 relative z-10">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Uploading... {Math.round(uploadProgress)}%</span>
-                  </div>
-                  <div className="w-48 h-1.5 bg-primary-foreground/20 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary-foreground transition-all duration-300" 
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2 relative z-10">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Upload</span>
-                </div>
+              {isUploading && (
+                <div 
+                  className="absolute inset-0 bg-primary-foreground/20 transition-all duration-300" 
+                  style={{ width: `${uploadProgress}%` }}
+                />
               )}
+              <div className="flex items-center justify-center gap-2 relative z-10">
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Uploading... {Math.round(uploadProgress)}%</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Upload</span>
+                  </>
+                )}
+              </div>
             </Button>
           </div>
         )}
