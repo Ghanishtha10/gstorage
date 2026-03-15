@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, fileToBase64 } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 
 export function FileUploadForm() {
@@ -50,7 +50,6 @@ export function FileUploadForm() {
     const selected = e.target.files?.[0];
     if (selected) {
       setThumbFile(selected);
-      setCustomThumbUrl(URL.createObjectURL(selected));
     }
   };
 
@@ -82,17 +81,25 @@ export function FileUploadForm() {
     setIsUploading(true);
     
     try {
-      const fakeUrl = fileType === 'image' 
-        ? `https://picsum.photos/seed/${Math.random()}/800/600`
-        : `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
+      // In a real app, we'd upload to Firebase Storage. 
+      // For this prototype, if it's an image, we'll convert to Base64.
+      // For other types, we'll use a placeholder.
+      let finalFileUrl = `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
+      
+      if (file.type.startsWith('image/') && file.size < 1048576) {
+        finalFileUrl = await fileToBase64(file);
+      }
 
-      const finalThumb = thumbFile 
-        ? `https://picsum.photos/seed/${Math.random()}/400/300` 
-        : customThumbUrl;
+      let finalThumb = customThumbUrl;
+      if (thumbFile) {
+        finalThumb = await fileToBase64(thumbFile);
+      } else if (!finalThumb && file.type.startsWith('image/')) {
+        finalThumb = finalFileUrl;
+      }
 
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: fakeUrl,
+        url: finalFileUrl,
         thumbnailUrl: finalThumb || null,
         type: fileType || 'other',
         mimeType: file.type,
@@ -103,14 +110,14 @@ export function FileUploadForm() {
 
       toast({
         title: "File Saved",
-        description: "Your file metadata is now persisted in Firestore.",
+        description: "Your file is now persisted in the vault.",
       });
       router.push('/admin');
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: "Error saving file metadata to Firestore.",
+        description: "Error saving file to the repository.",
       });
     } finally {
       setIsUploading(false);
@@ -184,23 +191,23 @@ export function FileUploadForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
-                <Input 
+                <input 
                   id="displayName" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Project Report"
-                  className="bg-background/50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="fileType" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category / Kind</Label>
-                <Input 
+                <input 
                   id="fileType" 
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
                   placeholder="e.g. PDF, Image, MP3, Blueprint..."
-                  className="bg-background/50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -208,12 +215,13 @@ export function FileUploadForm() {
                 <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail Configuration</Label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start">
                   <div className="flex-1 w-full space-y-2">
-                    <Input 
+                    <input 
                       id="thumbUrl" 
-                      value={customThumbUrl} 
+                      value={thumbFile ? `[File Selected: ${thumbFile.name}]` : customThumbUrl} 
                       onChange={(e) => setCustomThumbUrl(e.target.value)}
                       placeholder="Paste thumbnail URL here..."
-                      className="bg-background/50"
+                      className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      readOnly={!!thumbFile}
                     />
                     <p className="text-[10px] text-muted-foreground italic">Or upload a thumbnail image directly below.</p>
                   </div>
@@ -240,7 +248,7 @@ export function FileUploadForm() {
                   <div className="flex items-center gap-2 p-2 bg-secondary/10 rounded-lg border border-secondary/20">
                     <ImageIcon className="h-3 w-3 text-secondary" />
                     <span className="text-[10px] font-bold text-secondary truncate max-w-[200px]">{thumbFile.name}</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setThumbFile(null); setCustomThumbUrl(''); }}>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setThumbFile(null); }}>
                       <X className="h-3 w-3" />
                     </Button>
                   </div>

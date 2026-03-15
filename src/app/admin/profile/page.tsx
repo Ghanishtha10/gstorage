@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { fileToBase64 } from '@/lib/utils';
 
 export default function AdminProfilePage() {
   const db = useFirestore();
@@ -41,7 +42,7 @@ export default function AdminProfilePage() {
     const selected = e.target.files?.[0];
     if (selected) {
       setPhotoFile(selected);
-      setPhotoURL(URL.createObjectURL(selected));
+      // We don't set photoURL here yet, we'll convert it on save
     }
   };
 
@@ -51,11 +52,12 @@ export default function AdminProfilePage() {
 
     setIsSaving(true);
     try {
-      // In this prototype, if a file was selected, we simulate the upload by using a seeded picsum URL
-      // This keeps the UI consistent with the "simulated storage" feel of the rest of the app.
-      const finalPhotoURL = photoFile 
-        ? `https://picsum.photos/seed/${Math.random()}/200/200` 
-        : photoURL;
+      let finalPhotoURL = photoURL;
+      
+      if (photoFile) {
+        // Convert to Base64 if a file was uploaded
+        finalPhotoURL = await fileToBase64(photoFile);
+      }
 
       await setDoc(doc(db, 'public_profiles', 'admin'), {
         displayName,
@@ -69,6 +71,7 @@ export default function AdminProfilePage() {
         description: "Your public identity has been synchronized.",
       });
       setPhotoFile(null);
+      setPhotoURL(finalPhotoURL);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -108,7 +111,7 @@ export default function AdminProfilePage() {
           <CardContent className="flex flex-col items-center gap-4">
             <div className="relative group">
               <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-2xl transition-transform duration-500 group-hover:scale-105">
-                <AvatarImage src={photoURL || `https://picsum.photos/seed/admin/200/200`} />
+                <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : (photoURL || `https://picsum.photos/seed/admin/200/200`)} />
                 <AvatarFallback><UserCircle className="h-20 w-20" /></AvatarFallback>
               </Avatar>
               <button 
@@ -134,37 +137,38 @@ export default function AdminProfilePage() {
             <form onSubmit={handleSave} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
-                <Input 
+                <input 
                   id="displayName" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Satoshi Nakamoto"
-                  className="bg-muted/30 border-border/40 h-11"
+                  className="flex h-11 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Short Bio</Label>
-                <Input 
+                <input 
                   id="bio" 
                   value={bio} 
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="e.g. Lead Developer & Architect"
-                  className="bg-muted/30 border-border/40 h-11"
+                  className="flex h-11 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avatar Configuration</Label>
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-2">
-                    <Input 
+                    <input 
                       id="photoURL" 
-                      value={photoURL} 
+                      value={photoFile ? `[File Selected: ${photoFile.name}]` : photoURL} 
                       onChange={(e) => {
                         setPhotoURL(e.target.value);
                         setPhotoFile(null);
                       }}
                       placeholder="Paste image URL here..."
-                      className="bg-muted/30 border-border/40 flex-1 h-11"
+                      className="flex h-11 flex-1 rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      readOnly={!!photoFile}
                     />
                     <input 
                       type="file" 
@@ -193,7 +197,6 @@ export default function AdminProfilePage() {
                         className="h-6 w-6 text-destructive"
                         onClick={() => {
                           setPhotoFile(null);
-                          setPhotoURL(profile?.photoURL || '');
                         }}
                       >
                         <X className="h-3 w-3" />

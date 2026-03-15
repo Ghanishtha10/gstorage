@@ -6,6 +6,7 @@ import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { fileToBase64 } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useState, useRef } from 'react';
 
 interface AdminContentManagerProps {
@@ -82,7 +82,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     const selected = e.target.files?.[0];
     if (selected) {
       setEditThumbFile(selected);
-      setEditThumb(URL.createObjectURL(selected));
     }
   };
 
@@ -90,10 +89,10 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     if (!db || !fileToEdit) return;
     setIsUpdating(true);
     try {
-      // In this prototype, we simulate the upload by generating a picsum URL if a new file is provided
-      const finalThumb = editThumbFile 
-        ? `https://picsum.photos/seed/${Math.random()}/400/300` 
-        : editThumb;
+      let finalThumb = editThumb;
+      if (editThumbFile) {
+        finalThumb = await fileToBase64(editThumbFile);
+      }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
         name: editName,
@@ -182,35 +181,36 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
-              <Input 
+              <input 
                 id="edit-name" 
                 value={editName} 
                 onChange={(e) => setEditName(e.target.value)}
-                className="bg-muted/30"
+                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-type" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category / Kind</Label>
-              <Input 
+              <input 
                 id="edit-type" 
                 value={editType} 
                 onChange={(e) => setEditType(e.target.value)}
                 placeholder="e.g. PDF, Image, Archive..."
-                className="bg-muted/30"
+                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="space-y-4">
               <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail Configuration</Label>
               <div className="space-y-2">
-                <Input 
+                <input 
                   id="edit-thumb" 
-                  value={editThumb} 
+                  value={editThumbFile ? `[File Selected: ${editThumbFile.name}]` : editThumb} 
                   onChange={(e) => {
                     setEditThumb(e.target.value);
                     setEditThumbFile(null);
                   }}
                   placeholder="https://..."
-                  className="bg-muted/30"
+                  className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  readOnly={!!editThumbFile}
                 />
                 <div className="flex items-center gap-2">
                   <input 
@@ -237,7 +237,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                       className="h-8 w-8 text-destructive"
                       onClick={() => {
                         setEditThumbFile(null);
-                        setEditThumb(fileToEdit?.thumbnailUrl || '');
                       }}
                     >
                       <X className="h-4 w-4" />
