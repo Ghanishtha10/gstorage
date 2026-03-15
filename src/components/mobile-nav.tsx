@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, UserCircle } from "lucide-react";
@@ -19,6 +20,7 @@ const navItems = [
 ];
 
 export function MobileNav() {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const auth = useAuth();
   const { user } = useUser();
@@ -26,11 +28,12 @@ export function MobileNav() {
 
   const handleLogout = async () => {
     await signOut(auth);
+    setOpen(false);
     router.push('/');
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9 border border-border/40">
           <Menu className="h-5 w-5" />
@@ -70,6 +73,7 @@ export function MobileNav() {
               <Link 
                 key={item.label} 
                 href={item.href}
+                onClick={() => setOpen(false)}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
                   isActive 
