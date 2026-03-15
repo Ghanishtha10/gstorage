@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, UserCircle } from "lucide-react";
+import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, UserCircle, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
   { label: 'Upload', icon: Upload, href: '/admin/upload' },
+  { label: 'Security', icon: ShieldCheck, href: '/admin/security' },
   { label: 'Profile Settings', icon: UserCircle, href: '/admin/profile' },
   { label: 'Files Gallery', icon: Home, href: '/' },
 ];

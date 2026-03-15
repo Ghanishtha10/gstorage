@@ -132,7 +132,7 @@ export function FileUploadForm() {
     <Card className="bg-card border-border/40 overflow-hidden shadow-xl">
       <CardHeader className="bg-muted/30 pb-6">
         <CardTitle className="flex items-center gap-2">
-          <HardDrive className="h-5 w-5 text-primary" /> Cloud Asset Upload
+          <HardDrive className="h-5 w-5 text-primary" />
         </CardTitle>
         <CardDescription>All assets are stored securely in Firebase Storage with global metadata synchronization.</CardDescription>
       </CardHeader>
