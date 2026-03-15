@@ -42,18 +42,18 @@ export default function Home() {
   const adminBio = adminProfile?.bio || 'System Administrator';
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
       {/* Header */}
-      <header className="border-b border-border/40 bg-card/50 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-border/40 bg-card/50 backdrop-blur sticky top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
               <Database className="h-5 w-5" />
             </div>
             <span className="font-headline font-bold text-xl tracking-tight">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-colors" title="Customize Theme">
+            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Customize Theme">
               <Link href="/themes">
                 <Palette className="h-4 w-4" />
               </Link>
@@ -67,14 +67,14 @@ export default function Home() {
                     <Link href="/admin/profile" className="text-[10px] text-muted-foreground hover:text-primary transition-colors">Edit Profile</Link>
                   </div>
                   <Link href="/admin">
-                    <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all">
+                    <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all duration-300 hover:scale-110">
                       <AvatarImage src={adminPhoto} />
                       <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
                     </Avatar>
                   </Link>
                 </div>
               ) : (
-                <Button variant="ghost" size="sm" asChild className="text-sm font-medium">
+                <Button variant="ghost" size="sm" asChild className="text-sm font-bold tracking-tight hover:text-primary">
                   <Link href="/login">Admin Login</Link>
                 </Button>
               )
@@ -85,66 +85,66 @@ export default function Home() {
 
       <main className="flex-1 container mx-auto px-4 py-12 pb-32">
         <section className="mb-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6 animate-in fade-in slide-in-from-left-4 duration-700">
             <div>
-              <h1 className="text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">Files</h1>
-              <p className="text-muted-foreground">Browse the verified digital repository.</p>
+              <h1 className="text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">Verified Repository</h1>
+              <p className="text-muted-foreground text-sm font-medium">Securely browsing the global digital asset vault.</p>
             </div>
             {!isLoading && files && (
-              <div className="text-xs font-bold text-primary bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20 uppercase tracking-widest">
-                {files.length} items
+              <div className="text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
+                {files.length} items active
               </div>
             )}
           </div>
           
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-4" />
-              <p className="text-sm font-medium animate-pulse">Scanning repository...</p>
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-xs font-bold uppercase tracking-[0.2em] animate-pulse">Scanning Data Streams...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {files?.map((file: any) => (
-                <ContentCard key={file.id} file={file} />
+              {files?.map((file: any, index: number) => (
+                <ContentCard key={file.id} file={file} index={index} />
               ))}
             </div>
           )}
           
           {!isLoading && (!files || files.length === 0) && (
-            <div className="text-center py-32 bg-card border-2 border-dashed border-border/50 rounded-3xl">
+            <div className="text-center py-32 bg-card border-2 border-dashed border-border/50 rounded-3xl animate-in fade-in zoom-in duration-500">
               <Database className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-muted-foreground font-medium">The vault is currently empty.</p>
+              <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">The vault is currently empty.</p>
             </div>
           )}
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar - Positioned RIGHT with Corner Animation */}
-      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-right-8 zoom-in-95 duration-700 ease-out max-w-[calc(100vw-3rem)] sm:max-w-md">
-        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/20 transition-all">
+      {/* Discord-style Admin Profile Bar */}
+      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-right-12 slide-in-from-bottom-12 zoom-in-95 duration-1000 ease-out max-w-[calc(100vw-3rem)] sm:max-w-md">
+        <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
           <div className="relative shrink-0">
-            <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
+            <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-inner group-hover:border-primary/50 transition-colors">
               <AvatarImage src={adminPhoto} />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 border-2 border-card rounded-full" title="Online" />
+            <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-green-500 border-2 border-card rounded-full shadow-sm" title="Online" />
           </div>
           <div className="flex flex-col items-start text-left overflow-hidden">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
-              <span className="text-sm font-bold tracking-tight truncate">{adminName}</span>
+              <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
+              <span className="text-sm font-bold tracking-tight truncate group-hover:text-primary transition-colors">{adminName}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-medium line-clamp-1">{adminBio}</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest line-clamp-1">{adminBio}</span>
           </div>
           {user && (
-            <div className="flex items-center gap-1 pl-2 border-l border-border/40">
-              <Link href="/admin" className="p-2 bg-primary/10 rounded-xl text-primary hover:bg-primary/20 transition-colors" title="Admin Dashboard">
+            <div className="flex items-center gap-1 pl-3 border-l border-border/40">
+              <Link href="/admin" className="p-2.5 bg-primary/10 rounded-xl text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" title="Admin Dashboard">
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 text-destructive hover:bg-destructive/10 sm:hidden" 
+                className="h-9 w-9 text-destructive hover:bg-destructive/10 sm:hidden" 
                 onClick={handleLogout}
                 title="Logout"
               >
@@ -155,9 +155,9 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
-        <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-          <p>© {new Date().getFullYear()} G storage secure systems. All rights reserved.</p>
+      <footer className="border-t border-border/40 py-12 bg-card/30 mt-auto">
+        <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">
+          <p>© {new Date().getFullYear()} G storage secure systems. Encrypted connection active.</p>
         </div>
       </footer>
     </div>

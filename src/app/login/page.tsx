@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -12,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -28,9 +26,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      // Map simple username to a consistent internal email format for Firebase Auth
       const email = username.includes('@') ? username : `${username}@gstorage.com`;
-      
       await signInWithEmailAndPassword(auth, email, password);
       
       toast({
@@ -51,98 +47,100 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background selection:bg-primary/30">
-      <div className="absolute top-8 left-8">
-        <Button asChild variant="ghost" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background selection:bg-primary/30 overflow-hidden">
+      <div className="absolute top-8 left-8 animate-in fade-in slide-in-from-left-4 duration-500">
+        <Button asChild variant="ghost" className="gap-2 text-muted-foreground hover:text-primary transition-all font-bold uppercase tracking-widest text-[10px]">
           <Link href="/">
-            <ArrowLeft className="h-4 w-4" /> Back to Files
+            <ArrowLeft className="h-4 w-4" /> Exit Vault
           </Link>
         </Button>
       </div>
       
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/20 mb-2 rotate-3 hover:rotate-0 transition-transform duration-300">
-            <Database className="h-8 w-8" />
+      <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="h-20 w-20 rounded-[2.5rem] bg-primary flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/30 mb-2 rotate-6 hover:rotate-0 transition-all duration-500 hover:scale-110 cursor-pointer group">
+            <Database className="h-10 w-10 group-hover:scale-110 transition-transform" />
           </div>
-          <h1 className="text-3xl font-headline font-bold tracking-tight">G <span className="text-primary">storage</span></h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-[0.2em] font-medium">Administrator Portal</p>
+          <div className="space-y-1">
+            <h1 className="text-4xl font-headline font-bold tracking-tight uppercase">G <span className="text-primary">storage</span></h1>
+            <p className="text-muted-foreground text-[10px] uppercase tracking-[0.4em] font-bold">Secure Admin Access</p>
+          </div>
         </div>
 
-        <Card className="bg-card border-border/40 shadow-xl overflow-hidden">
-          <CardHeader className="space-y-1 bg-muted/20 pb-8 pt-8">
-            <CardTitle className="text-xl font-bold flex items-center justify-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" /> Admin Login
+        <Card className="bg-card/50 backdrop-blur border-border/40 shadow-2xl overflow-hidden rounded-[2rem] hover:shadow-primary/5 transition-all duration-500">
+          <CardHeader className="space-y-2 bg-muted/20 pb-10 pt-10 text-center border-b border-border/10">
+            <CardTitle className="text-xl font-bold flex items-center justify-center gap-3">
+              <ShieldCheck className="h-6 w-6 text-primary" /> Identity Verification
             </CardTitle>
-            <CardDescription className="text-center">
-              Secure access for authorized personnel only.
+            <CardDescription className="font-medium">
+              Authorized personnel credentials required.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <div className="relative">
+            <CardContent className="space-y-6 pt-10 pb-10">
+              <div className="space-y-3">
+                <Label htmlFor="username" className="font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Admin Username</Label>
+                <div className="relative group">
                   <Input 
                     id="username" 
                     type="text" 
                     placeholder="admin" 
-                    className="bg-background pl-10"
+                    className="bg-background/50 pl-11 h-12 border-border/40 focus:ring-primary/20 transition-all rounded-xl"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
                   />
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
                     <Database className="h-4 w-4" />
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
+              <div className="space-y-3">
+                <Label htmlFor="password" className="font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Security Phrase</Label>
+                <div className="relative group">
                   <Input 
                     id="password" 
                     type="password" 
                     placeholder="••••••••" 
-                    className="bg-background pl-10"
+                    className="bg-background/50 pl-11 h-12 border-border/40 focus:ring-primary/20 transition-all rounded-xl"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
                     <Lock className="h-4 w-4" />
                   </div>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20 mt-4" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {isLoading ? "Authenticating..." : "Enter Vault"}
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-2xl shadow-xl shadow-primary/20 mt-4 transition-all active:scale-95 group" disabled={isLoading}>
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <ShieldCheck className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />}
+                {isLoading ? "Synchronizing..." : "Initialize Session"}
               </Button>
             </CardContent>
           </form>
-          <CardFooter className="flex flex-col gap-4 bg-muted/10 border-t border-border/10 p-6">
-            <div className="w-full space-y-3">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest justify-center">
-                <div className="h-px bg-border flex-1" />
-                System Credentials
-                <div className="h-px bg-border flex-1" />
+          <CardFooter className="flex flex-col gap-4 bg-muted/20 border-t border-border/10 p-8">
+            <div className="w-full space-y-4">
+              <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-[0.3em] justify-center">
+                <div className="h-px bg-border/40 flex-1" />
+                Access Protocol
+                <div className="h-px bg-border/40 flex-1" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-background/50 border border-border/40 rounded-lg p-2 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase mb-1">User</p>
-                  <p className="font-mono text-xs font-bold">admin</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-background/40 border border-border/30 rounded-2xl p-3 text-center transition-all hover:bg-background/60">
+                  <p className="text-[9px] text-muted-foreground/60 uppercase font-bold mb-1 tracking-widest">User</p>
+                  <p className="font-mono text-xs font-bold text-primary">admin</p>
                 </div>
-                <div className="bg-background/50 border border-border/40 rounded-lg p-2 text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase mb-1">Pass</p>
-                  <p className="font-mono text-xs font-bold">admin123</p>
+                <div className="bg-background/40 border border-border/30 rounded-2xl p-3 text-center transition-all hover:bg-background/60">
+                  <p className="text-[9px] text-muted-foreground/60 uppercase font-bold mb-1 tracking-widest">Pass</p>
+                  <p className="font-mono text-xs font-bold text-primary">admin123</p>
                 </div>
               </div>
             </div>
           </CardFooter>
         </Card>
 
-        <p className="text-center text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">
-          Encrypted Session Protection Active
+        <p className="text-center text-[9px] text-muted-foreground/40 uppercase tracking-[0.5em] font-bold animate-pulse">
+          AES-256 Encrypted Session
         </p>
       </div>
     </div>
