@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -9,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -23,6 +24,29 @@ export function FileUploadForm() {
       setFile(selected);
     }
   };
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const onDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+    }
+  }, []);
 
   const handleUpload = async () => {
     if (!file || !db) return;
@@ -70,15 +94,38 @@ export function FileUploadForm() {
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
-          <div className="border-2 border-dashed border-border/60 rounded-2xl p-12 text-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer group">
-            <input type="file" className="hidden" id="file-upload" onChange={handleFileChange} />
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <div className="h-16 w-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/10 transition-colors">
-                <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+          <div 
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className={cn(
+              "border-2 border-dashed rounded-2xl p-12 text-center space-y-4 transition-all cursor-pointer group relative",
+              isDragging 
+                ? "border-primary bg-primary/5 scale-[0.99] shadow-inner" 
+                : "border-border/60 hover:border-primary/50 hover:bg-muted/30"
+            )}
+          >
+            <input 
+              type="file" 
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+              id="file-upload" 
+              onChange={handleFileChange} 
+            />
+            <div className="pointer-events-none">
+              <div className={cn(
+                "h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors",
+                isDragging ? "bg-primary/20" : "bg-muted/50 group-hover:bg-primary/10"
+              )}>
+                <Upload className={cn(
+                  "h-8 w-8 transition-colors",
+                  isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                )} />
               </div>
-              <h4 className="font-semibold text-lg">Choose a file or drag and drop</h4>
+              <h4 className="font-semibold text-lg">
+                {isDragging ? "Drop your file here" : "Choose a file or drag and drop"}
+              </h4>
               <p className="text-sm text-muted-foreground">Any file type (Max 20MB)</p>
-            </label>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
