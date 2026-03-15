@@ -3,16 +3,17 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFirestore, useFirebase } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { cn, fileToBase64 } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 
-const MAX_FILE_SIZE = 750 * 1024; // 750KB limit for Firestore strings
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit for cloud storage prototype
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +25,7 @@ export function FileUploadForm() {
   const [customThumbUrl, setCustomThumbUrl] = useState('');
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
-  const { firestore: db } = useFirebase();
+  const { firestore: db, storage } = useFirebase();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -41,7 +42,7 @@ export function FileUploadForm() {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "For this secure vault prototype, files must be under 750KB.",
+          description: "For this prototype, files must be under 50MB.",
         });
         setFile(null);
       }
@@ -74,7 +75,7 @@ export function FileUploadForm() {
     setIsDragging(false);
   }, []);
 
-  const onDrop = useCallback((e: React.DropEvent) => {
+  const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -86,26 +87,28 @@ export function FileUploadForm() {
   }, []);
 
   const handleUpload = async () => {
-    if (!file || !db) return;
+    if (!file || !db || !storage) return;
 
     setIsUploading(true);
     
     try {
-      // Convert main file to Base64
-      const fileDataUri = await fileToBase64(file);
+      // 1. Upload main file to Firebase Storage
+      const fileRef = ref(storage, `uploads/${Date.now()}-${file.name}`);
+      const fileSnapshot = await uploadBytes(fileRef, file);
+      const fileUrl = await getDownloadURL(fileSnapshot.ref);
 
-      // Handle Thumbnail
+      // 2. Handle Thumbnail upload if exists
       let finalThumb = customThumbUrl;
       if (thumbFile) {
-        finalThumb = await fileToBase64(thumbFile);
-      } else if (!finalThumb && file.type.startsWith('image/')) {
-        finalThumb = fileDataUri;
+        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name}`);
+        const thumbSnapshot = await uploadBytes(thumbRef, thumbFile);
+        finalThumb = await getDownloadURL(thumbSnapshot.ref);
       }
 
-      // Save to Firestore
+      // 3. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: fileDataUri,
+        url: fileUrl,
         thumbnailUrl: finalThumb || null,
         type: fileType || 'other',
         mimeType: file.type,
@@ -116,15 +119,15 @@ export function FileUploadForm() {
 
       toast({
         title: "Success",
-        description: "File securely encrypted and archived in the vault.",
+        description: "File securely uploaded to cloud storage.",
       });
       router.push('/admin');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload error:", error);
       toast({
         variant: "destructive",
-        title: "Vault Error",
-        description: "Could not process the secure upload. Try a smaller file.",
+        title: "Upload Failed",
+        description: error.message || "Could not complete the cloud upload.",
       });
     } finally {
       setIsUploading(false);
@@ -138,7 +141,7 @@ export function FileUploadForm() {
           <HardDrive className="h-5 w-5" />
           <span>Secure Asset Intake</span>
         </CardTitle>
-        <CardDescription>Uploads are limited to 750KB for the secure prototype vault.</CardDescription>
+        <CardDescription>Uploads are now supported via Cloud Storage (Max 50MB).</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -172,7 +175,7 @@ export function FileUploadForm() {
               <h4 className="font-semibold text-lg">
                 {isDragging ? "Drop to upload" : "Select or drag asset"}
               </h4>
-              <p className="text-sm text-muted-foreground text-balance">PDFs, Archives, Media, and more. Max 750KB.</p>
+              <p className="text-sm text-muted-foreground text-balance">PDFs, Archives, Media, and more. Max 50MB.</p>
             </div>
           </div>
         ) : (
@@ -247,25 +250,18 @@ export function FileUploadForm() {
               </div>
             </div>
 
-            {file.size > MAX_FILE_SIZE && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-3 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <p className="text-[10px] font-bold uppercase tracking-widest">Exceeds Prototype Size Limit (750KB)</p>
-              </div>
-            )}
-
             <Button 
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all" 
               onClick={handleUpload} 
-              disabled={isUploading || !file || file.size > MAX_FILE_SIZE}
+              disabled={isUploading || !file}
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Committing to Vault...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transferring to Cloud...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-5 w-5" /> Finalize Secure Upload
+                  <CheckCircle2 className="mr-2 h-5 w-5" /> Finalize Cloud Upload
                 </>
               )}
             </Button>

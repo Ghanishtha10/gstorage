@@ -5,8 +5,8 @@ import { ContentCard } from '@/components/content-card';
 import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirebase } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
-import { fileToBase64 } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ interface AdminContentManagerProps {
 }
 
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
-  const { firestore: db } = useFirebase();
+  const { firestore: db, storage } = useFirebase();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
@@ -86,12 +86,14 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   };
 
   const handleUpdate = async () => {
-    if (!db || !fileToEdit) return;
+    if (!db || !fileToEdit || !storage) return;
     setIsUpdating(true);
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        finalThumb = await fileToBase64(editThumbFile);
+        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${editThumbFile.name}`);
+        const snapshot = await uploadBytes(thumbRef, editThumbFile);
+        finalThumb = await getDownloadURL(snapshot.ref);
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
