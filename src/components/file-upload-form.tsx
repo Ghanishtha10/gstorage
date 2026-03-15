@@ -1,22 +1,41 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Music, Video, Headphones } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { FileType } from '@/lib/types';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [fileType, setFileType] = useState<FileType>('other');
+  const [customThumbUrl, setCustomThumbUrl] = useState('');
+  
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    if (file) {
+      setDisplayName(file.name);
+      if (file.type.startsWith('image/')) setFileType('image');
+      else if (file.type.startsWith('video/')) setFileType('video');
+      else if (file.type.startsWith('audio/')) setFileType('audio');
+      else if (file.type === 'application/pdf') setFileType('document');
+      else setFileType('other');
+    }
+  }, [file]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -54,14 +73,15 @@ export function FileUploadForm() {
     
     try {
       // Simulation of URL generation for prototype
-      const fakeUrl = file.type.startsWith('image/') 
+      const fakeUrl = fileType === 'image' 
         ? `https://picsum.photos/seed/${Math.random()}/800/600`
-        : `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`;
+        : `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
 
       await addDoc(collection(db, 'files'), {
-        name: file.name,
+        name: displayName || file.name,
         url: fakeUrl,
-        type: file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'document'),
+        thumbnailUrl: customThumbUrl || null,
+        type: fileType,
         mimeType: file.type,
         size: file.size,
         tags: ['General'],
@@ -90,7 +110,7 @@ export function FileUploadForm() {
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5 text-primary" /> New Content Upload
         </CardTitle>
-        <CardDescription>Select a file to add to your secure storage locker.</CardDescription>
+        <CardDescription>Select a file and specify its category/details.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -124,18 +144,22 @@ export function FileUploadForm() {
               <h4 className="font-semibold text-lg">
                 {isDragging ? "Drop your file here" : "Choose a file or drag and drop"}
               </h4>
-              <p className="text-sm text-muted-foreground">Any file type (Max 20MB)</p>
+              <p className="text-sm text-muted-foreground">PDF, MP3, Images, Videos, etc.</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl border border-border/60">
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  {file.type.startsWith('image/') ? <ImageIcon className="h-5 w-5 text-primary" /> : <FileText className="h-5 w-5 text-primary" />}
+                  {fileType === 'image' && <ImageIcon className="h-5 w-5 text-primary" />}
+                  {fileType === 'video' && <Video className="h-5 w-5 text-primary" />}
+                  {fileType === 'audio' && <Headphones className="h-5 w-5 text-primary" />}
+                  {fileType === 'document' && <FileText className="h-5 w-5 text-primary" />}
+                  {fileType === 'other' && <Upload className="h-5 w-5 text-primary" />}
                 </div>
                 <div>
-                  <p className="font-medium text-sm">{file.name}</p>
+                  <p className="font-medium text-sm truncate max-w-[200px]">{file.name}</p>
                   <p className="text-xs text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                 </div>
               </div>
@@ -144,14 +168,55 @@ export function FileUploadForm() {
               </Button>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="displayName" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
+                <Input 
+                  id="displayName" 
+                  value={displayName} 
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="e.g. Project Report"
+                  className="bg-background/50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fileType" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category Type</Label>
+                <Select value={fileType} onValueChange={(v) => setFileType(v as FileType)}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image">Image (Photo/Graphic)</SelectItem>
+                    <SelectItem value="video">Video (MP4/MOV)</SelectItem>
+                    <SelectItem value="audio">Audio (MP3/WAV)</SelectItem>
+                    <SelectItem value="document">Document (PDF/Word)</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="thumbUrl" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Custom Thumbnail URL (Optional)</Label>
+                <Input 
+                  id="thumbUrl" 
+                  value={customThumbUrl} 
+                  onChange={(e) => setCustomThumbUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="bg-background/50"
+                />
+                <p className="text-[10px] text-muted-foreground italic">If left empty, a generic icon will be used for non-image files.</p>
+              </div>
+            </div>
+
             <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Finalizing...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Confirm & Save to Firestore
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> Commit & Save to Repository
                 </>
               )}
             </Button>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
@@ -27,14 +27,17 @@ export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardP
   const Icon = {
     image: ImageIcon,
     video: Video,
+    audio: Headphones,
     document: FileText,
     other: File,
-  }[file.type];
+  }[file.type] || File;
 
   // Avoid hydration mismatch for relative time operations
   const timeAgo = mounted 
     ? formatDistanceToNow(new Date(file.createdAt)) + ' ago' 
     : 'Recently';
+
+  const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
 
   return (
     <Card 
@@ -45,9 +48,9 @@ export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardP
       style={{ animationDelay: `${Math.min(index * 75, 600)}ms` }}
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        {file.type === 'image' ? (
+        {previewSrc ? (
           <Image
-            src={file.url}
+            src={previewSrc}
             alt={file.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -75,11 +78,14 @@ export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardP
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">
         <div className="flex flex-wrap gap-1.5">
-          {file.tags.map((tag) => (
+          {file.tags?.map((tag) => (
             <Badge key={tag} variant="secondary" className="text-[9px] font-bold py-0.5 h-auto px-2 bg-muted/50 text-muted-foreground border-none group-hover:bg-primary/10 group-hover:text-primary transition-colors">
               {tag}
             </Badge>
           ))}
+          <Badge variant="outline" className="text-[9px] font-bold py-0.5 h-auto px-2 border-primary/20 text-primary/70 uppercase">
+            {file.type}
+          </Badge>
         </div>
       </CardContent>
       {isAdmin && (

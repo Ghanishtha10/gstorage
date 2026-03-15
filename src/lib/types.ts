@@ -1,9 +1,10 @@
-export type FileType = 'image' | 'video' | 'document' | 'other';
+export type FileType = 'image' | 'video' | 'audio' | 'document' | 'other';
 
 export interface ContentFile {
   id: string;
   name: string;
   url: string;
+  thumbnailUrl?: string;
   type: FileType;
   mimeType: string;
   size: number;
