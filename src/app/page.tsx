@@ -119,8 +119,8 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar - Positioned RIGHT */}
-      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[calc(100vw-3rem)] sm:max-w-md">
+      {/* Discord-style Admin Profile Bar - Positioned RIGHT with Corner Animation */}
+      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-right-8 zoom-in-95 duration-700 ease-out max-w-[calc(100vw-3rem)] sm:max-w-md">
         <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/20 transition-all">
           <div className="relative shrink-0">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">

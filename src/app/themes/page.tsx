@@ -3,16 +3,19 @@
 import Link from 'next/link';
 import { ArrowLeft, Palette, Check, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useThemeAccent } from '@/components/theme-provider-wrapper';
 import { cn } from '@/lib/utils';
 
 const PRESETS = [
-  { id: 'default', name: 'Sky Blue', color: 'bg-sky-400', class: 'default' },
-  { id: 'emerald', name: 'Emerald City', color: 'bg-emerald-500', class: 'emerald' },
-  { id: 'rose', name: 'Pink Rose', color: 'bg-rose-500', class: 'rose' },
-  { id: 'amber', name: 'Golden Amber', color: 'bg-amber-500', class: 'amber' },
-  { id: 'violet', name: 'Royal Violet', color: 'bg-violet-600', class: 'violet' },
+  { id: 'default', name: 'Sky Blue', color: 'bg-sky-400' },
+  { id: 'emerald', name: 'Emerald City', color: 'bg-emerald-500' },
+  { id: 'rose', name: 'Pink Rose', color: 'bg-rose-500' },
+  { id: 'amber', name: 'Golden Amber', color: 'bg-amber-500' },
+  { id: 'violet', name: 'Royal Violet', color: 'bg-violet-600' },
+  { id: 'slate', name: 'Steel Slate', color: 'bg-slate-500' },
+  { id: 'indigo', name: 'Ocean Indigo', color: 'bg-indigo-500' },
+  { id: 'orange', name: 'Sun Orange', color: 'bg-orange-500' },
 ] as const;
 
 export default function ThemesPage() {
@@ -37,7 +40,7 @@ export default function ThemesPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
-        <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-full max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center space-y-2">
             <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Palette className="h-6 w-6 text-primary" />
@@ -46,7 +49,7 @@ export default function ThemesPage() {
             <p className="text-muted-foreground">Choose a color accent that fits your style. Your choice is saved locally.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {PRESETS.map((preset) => {
               const isActive = accent === preset.id;
               return (
@@ -58,7 +61,7 @@ export default function ThemesPage() {
                   )}
                   onClick={() => setAccent(preset.id as any)}
                 >
-                  <CardHeader className="p-6">
+                  <CardHeader className="p-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("h-4 w-4 rounded-full shadow-sm", preset.color)} />
@@ -68,7 +71,7 @@ export default function ThemesPage() {
                     </div>
                   </CardHeader>
                   <div className={cn(
-                    "h-1.5 w-full mt-auto",
+                    "h-1 w-full mt-auto transition-colors",
                     isActive ? preset.color : "bg-transparent group-hover:bg-muted"
                   )} />
                 </Card>
@@ -77,14 +80,14 @@ export default function ThemesPage() {
           </div>
 
           <div className="pt-8 border-t border-border/40 text-center">
-            <Button size="lg" asChild className="px-8 font-bold shadow-lg shadow-primary/20">
+            <Button size="lg" asChild className="px-8 font-bold shadow-lg shadow-primary/20 h-12">
               <Link href="/">Apply & Return</Link>
             </Button>
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-border/40 py-8 bg-card/30">
+      <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
           <p>© {new Date().getFullYear()} G storage secure systems. All rights reserved.</p>
         </div>
