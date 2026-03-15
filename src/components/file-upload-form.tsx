@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Music, Video, Headphones } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -16,12 +16,14 @@ import { FileType } from '@/lib/types';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
+  const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [fileType, setFileType] = useState<FileType>('other');
   const [customThumbUrl, setCustomThumbUrl] = useState('');
   
+  const thumbInputRef = useRef<HTMLInputElement>(null);
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -41,6 +43,15 @@ export function FileUploadForm() {
     const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
+    }
+  };
+
+  const handleThumbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setThumbFile(selected);
+      // Simulate preview URL for UI feedback
+      setCustomThumbUrl(URL.createObjectURL(selected));
     }
   };
 
@@ -77,10 +88,14 @@ export function FileUploadForm() {
         ? `https://picsum.photos/seed/${Math.random()}/800/600`
         : `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
 
+      const finalThumb = thumbFile 
+        ? `https://picsum.photos/seed/${Math.random()}/400/300` // Simulated upload
+        : customThumbUrl;
+
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: fakeUrl,
-        thumbnailUrl: customThumbUrl || null,
+        thumbnailUrl: finalThumb || null,
         type: fileType,
         mimeType: file.type,
         size: file.size,
@@ -196,16 +211,47 @@ export function FileUploadForm() {
                 </Select>
               </div>
 
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="thumbUrl" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Custom Thumbnail URL (Optional)</Label>
-                <Input 
-                  id="thumbUrl" 
-                  value={customThumbUrl} 
-                  onChange={(e) => setCustomThumbUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="bg-background/50"
-                />
-                <p className="text-[10px] text-muted-foreground italic">If left empty, a generic icon will be used for non-image files.</p>
+              <div className="md:col-span-2 space-y-4">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail Configuration</Label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start">
+                  <div className="flex-1 w-full space-y-2">
+                    <Input 
+                      id="thumbUrl" 
+                      value={customThumbUrl} 
+                      onChange={(e) => setCustomThumbUrl(e.target.value)}
+                      placeholder="Paste thumbnail URL here..."
+                      className="bg-background/50"
+                    />
+                    <p className="text-[10px] text-muted-foreground italic">Or upload a thumbnail image directly below.</p>
+                  </div>
+                  <div className="shrink-0">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={thumbInputRef} 
+                      accept="image/*"
+                      onChange={handleThumbChange}
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      className="gap-2 border-primary/20 hover:border-primary/50"
+                      onClick={() => thumbInputRef.current?.click()}
+                    >
+                      {thumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <Camera className="h-4 w-4" />}
+                      {thumbFile ? "Thumbnail Added" : "Upload Thumbnail"}
+                    </Button>
+                  </div>
+                </div>
+                {thumbFile && (
+                  <div className="flex items-center gap-2 p-2 bg-secondary/10 rounded-lg border border-secondary/20">
+                    <ImageIcon className="h-3 w-3 text-secondary" />
+                    <span className="text-[10px] font-bold text-secondary truncate max-w-[200px]">{thumbFile.name}</span>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setThumbFile(null); setCustomThumbUrl(''); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 

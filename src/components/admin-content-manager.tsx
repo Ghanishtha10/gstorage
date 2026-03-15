@@ -4,7 +4,7 @@ import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
 import { Database, Loader2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -16,6 +16,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 
 interface AdminContentManagerProps {
@@ -26,7 +38,14 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   const db = useFirestore();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Edit states
+  const [editName, setEditName] = useState('');
+  const [editType, setEditType] = useState<ContentFile['type']>('other');
+  const [editThumb, setEditThumb] = useState('');
 
   const handleDelete = async () => {
     if (!db || !fileToDelete) return;
@@ -49,6 +68,38 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     }
   };
 
+  const handleOpenEdit = (file: ContentFile) => {
+    setFileToEdit(file);
+    setEditName(file.name);
+    setEditType(file.type);
+    setEditThumb(file.thumbnailUrl || '');
+  };
+
+  const handleUpdate = async () => {
+    if (!db || !fileToEdit) return;
+    setIsUpdating(true);
+    try {
+      await updateDoc(doc(db, 'files', fileToEdit.id), {
+        name: editName,
+        type: editType,
+        thumbnailUrl: editThumb || null,
+      });
+      toast({
+        title: "File Updated",
+        description: "Metadata changes have been synchronized.",
+      });
+      setFileToEdit(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Could not sync changes to the database.",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -66,6 +117,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               file={file} 
               isAdmin 
               onDelete={(id) => setFileToDelete(id)} 
+              onEdit={handleOpenEdit}
             />
           ))}
         </div>
@@ -76,6 +128,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         </div>
       )}
 
+      {/* Delete Confirmation */}
       <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && !isDeleting && setFileToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -100,6 +153,61 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!fileToEdit} onOpenChange={(open) => !open && !isUpdating && setFileToEdit(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit File Metadata</DialogTitle>
+            <DialogDescription>
+              Modify how this file appears in the vault.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
+              <Input 
+                id="edit-name" 
+                value={editName} 
+                onChange={(e) => setEditName(e.target.value)}
+                className="bg-muted/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-type" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
+              <Select value={editType} onValueChange={(v) => setEditType(v as any)}>
+                <SelectTrigger className="bg-muted/30">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
+                  <SelectItem value="document">Document</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-thumb" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail URL</Label>
+              <Input 
+                id="edit-thumb" 
+                value={editThumb} 
+                onChange={(e) => setEditThumb(e.target.value)}
+                placeholder="https://..."
+                className="bg-muted/30"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFileToEdit(null)} disabled={isUpdating}>Cancel</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2">
+              {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isUpdating ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

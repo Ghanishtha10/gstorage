@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
@@ -14,10 +14,11 @@ interface ContentCardProps {
   file: ContentFile;
   isAdmin?: boolean;
   onDelete?: (id: string) => void;
+  onEdit?: (file: ContentFile) => void;
   index?: number;
 }
 
-export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardProps) {
+export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: ContentCardProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,7 +33,6 @@ export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardP
     other: File,
   }[file.type] || File;
 
-  // Avoid hydration mismatch for relative time operations
   const timeAgo = mounted 
     ? formatDistanceToNow(new Date(file.createdAt)) + ' ago' 
     : 'Recently';
@@ -89,7 +89,15 @@ export function ContentCard({ file, isAdmin, onDelete, index = 0 }: ContentCardP
         </div>
       </CardContent>
       {isAdmin && (
-        <CardFooter className="p-2 border-t border-border/20 bg-muted/20 flex justify-end">
+        <CardFooter className="p-2 border-t border-border/20 bg-muted/20 flex justify-end gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            onClick={() => onEdit?.(file)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
