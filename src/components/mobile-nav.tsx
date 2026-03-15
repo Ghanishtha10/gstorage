@@ -7,9 +7,10 @@ import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, UserCircle, Shie
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { doc } from "firebase/firestore";
 
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
@@ -24,13 +25,25 @@ export function MobileNav() {
   const pathname = usePathname();
   const auth = useAuth();
   const { user } = useUser();
+  const db = useFirestore();
   const router = useRouter();
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'public_profiles', 'admin');
+  }, [db]);
+
+  const { data: profile } = useDoc(profileRef);
 
   const handleLogout = async () => {
     await signOut(auth);
     setOpen(false);
     router.push('/');
   };
+
+  const displayName = profile?.displayName || user?.displayName || 'Admin';
+  const bio = profile?.bio || 'System Administrator';
+  const photoURL = profile?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -54,12 +67,12 @@ export function MobileNav() {
 
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-background border border-border/40">
              <Avatar className="h-10 w-10 border-2 border-primary/20">
-               <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
+               <AvatarImage src={photoURL} />
                <AvatarFallback>AD</AvatarFallback>
              </Avatar>
              <div className="flex flex-col overflow-hidden">
-               <span className="text-sm font-bold truncate">{user?.displayName || 'Admin User'}</span>
-               <span className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">Administrator</span>
+               <span className="text-sm font-bold truncate">{displayName}</span>
+               <span className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">{bio}</span>
              </div>
           </div>
         </div>

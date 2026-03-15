@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import { doc } from 'firebase/firestore';
 
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
@@ -22,12 +23,24 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const auth = useAuth();
   const { user } = useUser();
+  const db = useFirestore();
   const router = useRouter();
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'public_profiles', 'admin');
+  }, [db]);
+
+  const { data: profile } = useDoc(profileRef);
 
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/');
   };
+
+  const displayName = profile?.displayName || user?.displayName || 'Admin';
+  const bio = profile?.bio || 'System Administrator';
+  const photoURL = profile?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`;
 
   return (
     <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full shrink-0">
@@ -66,12 +79,12 @@ export function AdminSidebar() {
       <div className="p-4 border-t border-border/40 bg-muted/5 shrink-0">
         <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-background rounded-xl border border-border/10">
            <Avatar className="h-9 w-9 border border-primary/20">
-             <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
+             <AvatarImage src={photoURL} />
              <AvatarFallback>AD</AvatarFallback>
            </Avatar>
            <div className="flex flex-col overflow-hidden">
-             <span className="text-xs font-bold truncate">{user?.displayName || 'Admin'}</span>
-             <span className="text-[9px] text-muted-foreground truncate uppercase tracking-widest font-bold">Authorized</span>
+             <span className="text-xs font-bold truncate">{displayName}</span>
+             <span className="text-[9px] text-muted-foreground truncate uppercase tracking-widest font-bold">{bio}</span>
            </div>
         </div>
         <Button 

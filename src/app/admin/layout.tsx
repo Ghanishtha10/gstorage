@@ -65,11 +65,6 @@ export default function AdminLayout({
           </div>
           
           <div className="ml-auto flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Secure Link Active</span>
-            </div>
-            
             <Button 
               variant="ghost" 
               size="icon" 
