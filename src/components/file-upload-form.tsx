@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn, fileToBase64 } from '@/lib/utils';
@@ -78,17 +78,22 @@ export function FileUploadForm() {
 
   const handleUpload = async () => {
     if (!file || !db) return;
+
+    // Firestore has a 1MB limit for documents. We need to check the file size.
+    if (file.size > 800000) {
+      toast({
+        variant: "destructive",
+        title: "File Too Large",
+        description: "In this prototype, files must be under 800KB to be stored in the database.",
+      });
+      return;
+    }
+
     setIsUploading(true);
     
     try {
-      // In a real app, we'd upload to Firebase Storage. 
-      // For this prototype, if it's an image, we'll convert to Base64.
-      // For other types, we'll use a placeholder.
-      let finalFileUrl = `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
-      
-      if (file.type.startsWith('image/') && file.size < 1048576) {
-        finalFileUrl = await fileToBase64(file);
-      }
+      // Convert the actual file to Base64 to store the REAL content
+      const finalFileUrl = await fileToBase64(file);
 
       let finalThumb = customThumbUrl;
       if (thumbFile) {
@@ -178,7 +183,7 @@ export function FileUploadForm() {
                   {fileType === 'document' && <FileText className="h-5 w-5 text-primary" />}
                   {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-5 w-5 text-primary" />}
                 </div>
-                <div>
+                <div className="overflow-hidden">
                   <p className="font-medium text-sm truncate max-w-[200px]">{file.name}</p>
                   <p className="text-xs text-muted-foreground">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                 </div>
@@ -187,6 +192,13 @@ export function FileUploadForm() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
+
+            {file.size > 800000 && (
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-xs font-bold">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                This file exceeds the 800KB database limit for this prototype.
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -256,7 +268,11 @@ export function FileUploadForm() {
               </div>
             </div>
 
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20" onClick={handleUpload} disabled={isUploading}>
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20" 
+              onClick={handleUpload} 
+              disabled={isUploading || file.size > 800000}
+            >
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Finalizing...
