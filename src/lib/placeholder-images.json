@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "Abstract technological background",
+      "imageUrl": "https://picsum.photos/seed/lockerhero/1920/1080",
+      "imageHint": "abstract technology"
+    },
+    {
+      "id": "admin-avatar",
+      "description": "Professional profile picture",
+      "imageUrl": "https://picsum.photos/seed/admin/100/100",
+      "imageHint": "professional person"
+    }
+  ]
+}
