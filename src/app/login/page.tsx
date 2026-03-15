@@ -58,9 +58,6 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="h-20 w-20 rounded-[2.5rem] bg-primary flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/30 mb-2 rotate-6 hover:rotate-0 transition-all duration-500 hover:scale-110 cursor-pointer group">
-            <Database className="h-10 w-10 group-hover:scale-110 transition-transform" />
-          </div>
           <div className="space-y-1">
             <h1 className="text-4xl font-headline font-bold tracking-tight uppercase">G <span className="text-primary">storage</span></h1>
             <p className="text-muted-foreground text-[10px] uppercase tracking-[0.4em] font-bold">Secure Admin Access</p>
@@ -91,7 +88,7 @@ export default function LoginPage() {
                     required
                   />
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 group-focus-within:text-primary transition-colors">
-                    <Database className="h-4 w-4" />
+                    <ShieldCheck className="h-4 w-4" />
                   </div>
                 </div>
               </div>

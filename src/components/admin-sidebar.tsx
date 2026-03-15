@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -33,9 +32,6 @@ export function AdminSidebar() {
     <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col">
       <div className="p-6 border-b border-border/40 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground group-hover:rotate-6 transition-transform">
-            <Database className="h-5 w-5" />
-          </div>
           <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
         </Link>
         <ThemeToggle />

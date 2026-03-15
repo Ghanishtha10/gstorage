@@ -7,6 +7,9 @@ import { ThemeProviderWrapper } from '@/components/theme-provider-wrapper';
 export const metadata: Metadata = {
   title: 'G storage - Secure Digital Repository',
   description: 'A simple and secure way to store and share your digital assets.',
+  icons: {
+    icon: [],
+  },
 };
 
 export default function RootLayout({
