@@ -30,7 +30,7 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full overflow-hidden">
+    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full overflow-hidden shrink-0">
       <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0">
         <Link href="/" className="flex items-center gap-2 group">
           <Database className="h-5 w-5 text-primary" />

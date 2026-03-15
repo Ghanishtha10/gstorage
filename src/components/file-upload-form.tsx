@@ -102,9 +102,10 @@ export function FileUploadForm() {
         uploadTask.on(
           'state_changed',
           (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            // Force a minimum of 1% to show it started
-            setUploadProgress(Math.max(progress, 1));
+            const progress = snapshot.totalBytes > 0 
+              ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
+              : 0;
+            setUploadProgress(progress);
           },
           (error) => {
             console.error("Storage error:", error);
@@ -138,6 +139,7 @@ export function FileUploadForm() {
         createdAt: new Date().toISOString(),
       });
 
+      setUploadProgress(100);
       toast({
         title: "Success",
         description: "File added to the vault.",
@@ -282,7 +284,7 @@ export function FileUploadForm() {
             >
               {isUploading && (
                 <div 
-                  className="absolute inset-0 bg-primary-foreground/20 transition-all duration-300" 
+                  className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out" 
                   style={{ width: `${uploadProgress}%` }}
                 />
               )}
