@@ -46,7 +46,7 @@ export function MobileNav() {
           <SheetDescription>Access administrative tools and settings.</SheetDescription>
         </SheetHeader>
         
-        <div className="p-6 border-b border-border/40 bg-muted/20">
+        <div className="p-6 border-b border-border/40 bg-muted/20 shrink-0">
           <div className="flex items-center gap-2 mb-6">
             <Database className="h-6 w-6 text-primary" />
             <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
@@ -64,29 +64,31 @@ export function MobileNav() {
           </div>
         </div>
         
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link 
-                key={item.label} 
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
-                  isActive 
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                    : "text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex-1 overflow-y-auto p-4">
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.label} 
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
+                    isActive 
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                      : "text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-        <div className="p-4 border-t border-border/40 bg-muted/10">
+        <div className="p-4 border-t border-border/40 bg-muted/10 shrink-0">
           <Button 
             variant="destructive" 
             className="w-full justify-start gap-3 h-12 rounded-xl font-bold shadow-lg shadow-destructive/10"

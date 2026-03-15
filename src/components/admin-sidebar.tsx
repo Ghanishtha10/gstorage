@@ -30,8 +30,8 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col">
-      <div className="p-6 border-b border-border/40 flex items-center justify-between">
+    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full overflow-hidden">
+      <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0">
         <Link href="/" className="flex items-center gap-2 group">
           <Database className="h-5 w-5 text-primary" />
           <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
@@ -39,30 +39,32 @@ export function AdminSidebar() {
         <ThemeToggle />
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-2">Navigation</p>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link 
-              key={item.label} 
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-medium",
-                isActive 
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <item.icon className={cn("h-4 w-4", isActive ? "" : "text-muted-foreground group-hover:text-primary")} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div className="flex-1 overflow-y-auto p-4">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-4">Navigation</p>
+        <nav className="space-y-2">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.label} 
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-medium",
+                  isActive 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <item.icon className={cn("h-4 w-4", isActive ? "" : "text-muted-foreground group-hover:text-primary")} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
-      <div className="p-4 mt-auto border-t border-border/40 space-y-4">
-        <div className="flex items-center gap-3 px-4 py-2 bg-muted/20 rounded-xl border border-border/10">
+      <div className="p-4 border-t border-border/40 bg-muted/10 shrink-0">
+        <div className="flex items-center gap-3 px-4 py-3 mb-4 bg-background rounded-xl border border-border/10">
            <Avatar className="h-9 w-9 border-2 border-primary/20">
              <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
              <AvatarFallback>AD</AvatarFallback>
@@ -74,7 +76,7 @@ export function AdminSidebar() {
         </div>
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive h-11 rounded-xl font-bold"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" /> Logout

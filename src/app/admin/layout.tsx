@@ -13,7 +13,7 @@ import { signOut } from 'firebase/auth';
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.Node;
 }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -57,7 +57,7 @@ export default function AdminLayout({
             </Button>
           </div>
           
-          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest hidden xs:block truncate max-w-[150px] sm:max-w-none">
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest truncate">
             Admin / <span className="text-primary">G storage</span>
           </h2>
           
@@ -78,7 +78,7 @@ export default function AdminLayout({
             </Button>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-background/50">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-background/50">
           <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
