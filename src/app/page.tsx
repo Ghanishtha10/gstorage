@@ -87,7 +87,7 @@ export default function Home() {
         <section className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6 animate-in fade-in slide-in-from-left-4 duration-700">
             <div>
-              <h1 className="text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">Verified Repository</h1>
+              <h1 className="text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">File Storage</h1>
               <p className="text-muted-foreground text-sm font-medium">Securely browsing the global digital asset vault.</p>
             </div>
             {!isLoading && files && (
@@ -121,30 +121,30 @@ export default function Home() {
 
       {/* Discord-style Admin Profile Bar */}
       <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-right-12 slide-in-from-bottom-12 zoom-in-95 duration-1000 ease-out max-w-[calc(100vw-3rem)] sm:max-w-md">
-        <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
+        <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-2 pr-4 rounded-xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
           <div className="relative shrink-0">
-            <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-inner group-hover:border-primary/50 transition-colors">
+            <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner group-hover:border-primary/50 transition-colors">
               <AvatarImage src={adminPhoto} />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-green-500 border-2 border-card rounded-full shadow-sm" title="Online" />
+            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-card rounded-full shadow-sm" title="Online" />
           </div>
           <div className="flex flex-col items-start text-left overflow-hidden">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
-              <span className="text-sm font-bold tracking-tight truncate group-hover:text-primary transition-colors">{adminName}</span>
+              <span className="text-xs font-bold tracking-tight truncate group-hover:text-primary transition-colors">{adminName}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest line-clamp-1">{adminBio}</span>
+            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest line-clamp-1">{adminBio}</span>
           </div>
           {user && (
-            <div className="flex items-center gap-1 pl-3 border-l border-border/40">
-              <Link href="/admin" className="p-2.5 bg-primary/10 rounded-xl text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" title="Admin Dashboard">
+            <div className="flex items-center gap-1 pl-2 border-l border-border/40">
+              <Link href="/admin" className="p-2 bg-primary/10 rounded-lg text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" title="Admin Dashboard">
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-9 w-9 text-destructive hover:bg-destructive/10 sm:hidden" 
+                className="h-8 w-8 text-destructive hover:bg-destructive/10 sm:hidden" 
                 onClick={handleLogout}
                 title="Logout"
               >
