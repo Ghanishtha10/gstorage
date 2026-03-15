@@ -3,15 +3,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFirestore, useFirebase } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, fileToBase64 } from '@/lib/utils';
 import { FileType } from '@/lib/types';
+
+const MAX_FILE_SIZE = 750 * 1024; // 750KB limit for Firestore strings
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -23,7 +24,7 @@ export function FileUploadForm() {
   const [customThumbUrl, setCustomThumbUrl] = useState('');
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
-  const { firestore: db, storage } = useFirebase();
+  const { firestore: db } = useFirebase();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -35,8 +36,17 @@ export function FileUploadForm() {
       else if (file.type.startsWith('audio/')) setFileType('audio');
       else if (file.type === 'application/pdf') setFileType('document');
       else setFileType('other');
+
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: "For this secure vault prototype, files must be under 750KB.",
+        });
+        setFile(null);
+      }
     }
-  }, [file]);
+  }, [file, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -64,7 +74,7 @@ export function FileUploadForm() {
     setIsDragging(false);
   }, []);
 
-  const onDrop = useCallback((e: React.DragEvent) => {
+  const onDrop = useCallback((e: React.DropEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -76,52 +86,45 @@ export function FileUploadForm() {
   }, []);
 
   const handleUpload = async () => {
-    if (!file || !db || !storage) return;
+    if (!file || !db) return;
 
     setIsUploading(true);
     
     try {
-      // 1. Upload the main file to Firebase Storage
-      const fileId = `${Date.now()}_${file.name}`;
-      const fileRef = ref(storage, `files/${fileId}`);
-      const fileUploadResult = await uploadBytes(fileRef, file);
-      const finalFileUrl = await getDownloadURL(fileUploadResult.ref);
+      // Convert main file to Base64
+      const fileDataUri = await fileToBase64(file);
 
-      // 2. Handle Thumbnail (either custom URL or direct upload)
+      // Handle Thumbnail
       let finalThumb = customThumbUrl;
       if (thumbFile) {
-        const thumbId = `thumb_${Date.now()}_${thumbFile.name}`;
-        const thumbRef = ref(storage, `thumbnails/${thumbId}`);
-        const thumbUploadResult = await uploadBytes(thumbRef, thumbFile);
-        finalThumb = await getDownloadURL(thumbUploadResult.ref);
+        finalThumb = await fileToBase64(thumbFile);
       } else if (!finalThumb && file.type.startsWith('image/')) {
-        finalThumb = finalFileUrl;
+        finalThumb = fileDataUri;
       }
 
-      // 3. Save metadata to Firestore
+      // Save to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: finalFileUrl,
+        url: fileDataUri,
         thumbnailUrl: finalThumb || null,
         type: fileType || 'other',
         mimeType: file.type,
         size: file.size,
         tags: ['General'],
         createdAt: new Date().toISOString(),
-        storagePath: `files/${fileId}`,
       });
 
       toast({
         title: "Success",
-        description: "File securely uploaded and archived in the vault.",
+        description: "File securely encrypted and archived in the vault.",
       });
       router.push('/admin');
     } catch (error) {
       console.error("Upload error:", error);
       toast({
         variant: "destructive",
-        title: "Upload Failed",
-        description: "The secure vault could not accept this file. Please check your connection.",
+        title: "Vault Error",
+        description: "Could not process the secure upload. Try a smaller file.",
       });
     } finally {
       setIsUploading(false);
@@ -131,10 +134,11 @@ export function FileUploadForm() {
   return (
     <Card className="bg-card border-border/40 overflow-hidden shadow-xl">
       <CardHeader className="bg-muted/30 pb-6">
-        <CardTitle className="flex items-center gap-2">
-          <HardDrive className="h-5 w-5 text-primary" />
+        <CardTitle className="flex items-center gap-2 text-primary">
+          <HardDrive className="h-5 w-5" />
+          <span>Secure Asset Intake</span>
         </CardTitle>
-        <CardDescription>All assets are stored securely in Firebase Storage with global metadata synchronization.</CardDescription>
+        <CardDescription>Uploads are limited to 750KB for the secure prototype vault.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -168,7 +172,7 @@ export function FileUploadForm() {
               <h4 className="font-semibold text-lg">
                 {isDragging ? "Drop to upload" : "Select or drag asset"}
               </h4>
-              <p className="text-sm text-muted-foreground text-balance">PDFs, Archives, Media, and more. Optimized for cloud delivery.</p>
+              <p className="text-sm text-muted-foreground text-balance">PDFs, Archives, Media, and more. Max 750KB.</p>
             </div>
           </div>
         ) : (
@@ -243,18 +247,25 @@ export function FileUploadForm() {
               </div>
             </div>
 
+            {file.size > MAX_FILE_SIZE && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-3 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">Exceeds Prototype Size Limit (750KB)</p>
+              </div>
+            )}
+
             <Button 
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all" 
               onClick={handleUpload} 
-              disabled={isUploading || !file}
+              disabled={isUploading || !file || file.size > MAX_FILE_SIZE}
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Synchronizing with Storage...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Committing to Vault...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-5 w-5" /> Push to Cloud Storage
+                  <CheckCircle2 className="mr-2 h-5 w-5" /> Finalize Secure Upload
                 </>
               )}
             </Button>

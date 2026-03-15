@@ -5,8 +5,8 @@ import { ContentCard } from '@/components/content-card';
 import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirebase } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
+import { fileToBase64 } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ interface AdminContentManagerProps {
 }
 
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
-  const { firestore: db, storage } = useFirebase();
+  const { firestore: db } = useFirebase();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
@@ -86,15 +86,12 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   };
 
   const handleUpdate = async () => {
-    if (!db || !fileToEdit || !storage) return;
+    if (!db || !fileToEdit) return;
     setIsUpdating(true);
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        const thumbId = `thumb_${Date.now()}_${editThumbFile.name}`;
-        const thumbRef = ref(storage, `thumbnails/${thumbId}`);
-        const thumbUploadResult = await uploadBytes(thumbRef, editThumbFile);
-        finalThumb = await getDownloadURL(thumbUploadResult.ref);
+        finalThumb = await fileToBase64(editThumbFile);
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
@@ -152,7 +149,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this file?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action is permanent and will remove the file's metadata from G storage. The physical file remains in cloud storage for backup.
+              This action is permanent and will remove the file's data from G storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

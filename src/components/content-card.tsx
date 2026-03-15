@@ -47,26 +47,27 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     setIsDownloading(true);
     
     try {
-      // Fetch the data regardless of whether it's a URL or a Data URI
+      // Create a Blob from the file data (works for both external URLs and Base64 Data URIs)
       const response = await fetch(file.url);
       const blob = await response.blob();
       
-      // Create a local blob URL
       const blobUrl = URL.createObjectURL(blob);
-      
-      // Create a hidden link and trigger the download
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = file.name.includes('.') ? file.name : `${file.name}.${file.mimeType.split('/')[1] || 'bin'}`;
+      
+      // Attempt to preserve file extension
+      const extension = file.mimeType?.split('/')[1] || 'bin';
+      const downloadName = file.name.includes('.') ? file.name : `${file.name}.${extension}`;
+      
+      link.download = downloadName;
       document.body.appendChild(link);
       link.click();
       
-      // Clean up
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error("Download failed, falling back to direct link:", error);
-      // Fallback: Just try to open it if fetch fails (e.g. CORS issues on placeholders)
+      console.error("Download failed:", error);
+      // Fallback
       window.open(file.url, '_blank');
     } finally {
       setIsDownloading(false);
