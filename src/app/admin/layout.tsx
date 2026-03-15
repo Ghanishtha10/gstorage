@@ -44,9 +44,9 @@ export default function AdminLayout({
   if (!user) return null;
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden fixed inset-0">
       <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0 h-full relative">
+      <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
         <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/80 backdrop-blur-md shrink-0 z-30">
           <div className="flex items-center gap-3">
             <div className="md:hidden">
@@ -73,7 +73,7 @@ export default function AdminLayout({
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-9 w-9 text-destructive md:hidden hover:bg-destructive/10" 
+              className="h-9 w-9 text-destructive hover:bg-destructive/10" 
               onClick={handleLogout}
               title="Logout"
             >

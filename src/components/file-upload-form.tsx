@@ -95,7 +95,7 @@ export function FileUploadForm() {
     
     try {
       // 1. Upload the main file with progress tracking
-      const fileRef = ref(storage, `uploads/${Date.now()}-${file.name.replace(/\s+/g, '_')}`);
+      const fileRef = ref(storage, `uploads/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
       const uploadTask = uploadBytesResumable(fileRef, file);
 
       const fileUrl = await new Promise<string>((resolve, reject) => {
@@ -103,7 +103,6 @@ export function FileUploadForm() {
           'state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            // Always show at least 1% once started to prevent looking "stuck"
             setUploadProgress(Math.max(1, progress));
           },
           (error) => {
@@ -124,7 +123,7 @@ export function FileUploadForm() {
       // 2. Upload thumbnail if provided
       let finalThumb = customThumbUrl;
       if (thumbFile) {
-        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name.replace(/\s+/g, '_')}`);
+        const thumbRef = ref(storage, `thumbnails/${Date.now()}_${thumbFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
         await uploadBytesResumable(thumbRef, thumbFile);
         finalThumb = await getDownloadURL(thumbRef);
       }
@@ -152,7 +151,7 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: "The secure transfer was interrupted. Please check your connection and retry.",
+        description: "Verify your Storage bucket is enabled and try again.",
       });
     } finally {
       setIsUploading(false);
@@ -286,7 +285,7 @@ export function FileUploadForm() {
             >
               {isUploading && (
                 <div 
-                  className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out" 
+                  className="absolute inset-0 bg-primary/40 transition-all duration-300 ease-out" 
                   style={{ width: `${uploadProgress}%` }}
                 />
               )}
