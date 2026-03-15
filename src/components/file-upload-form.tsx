@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFirebase } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [fileType, setFileType] = useState<FileType>('');
@@ -90,19 +91,38 @@ export function FileUploadForm() {
     if (!file || !db || !storage) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
+      // 1. Upload the main file with progress tracking
       const fileRef = ref(storage, `uploads/${Date.now()}-${file.name}`);
-      const fileSnapshot = await uploadBytes(fileRef, file);
-      const fileUrl = await getDownloadURL(fileSnapshot.ref);
+      const uploadTask = uploadBytesResumable(fileRef, file);
 
+      const fileUrl = await new Promise<string>((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+          },
+          (error) => reject(error),
+          async () => {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(url);
+          }
+        );
+      });
+
+      // 2. Upload thumbnail if provided
       let finalThumb = customThumbUrl;
       if (thumbFile) {
         const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name}`);
-        const thumbSnapshot = await uploadBytes(thumbRef, thumbFile);
-        finalThumb = await getDownloadURL(thumbSnapshot.ref);
+        const thumbUploadTask = uploadBytesResumable(thumbRef, thumbFile);
+        await thumbUploadTask;
+        finalThumb = await getDownloadURL(thumbUploadTask.snapshot.ref);
       }
 
+      // 3. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: fileUrl,
@@ -128,6 +148,7 @@ export function FileUploadForm() {
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -248,18 +269,28 @@ export function FileUploadForm() {
             </div>
 
             <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-xs" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-16 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-xs relative overflow-hidden group" 
               onClick={handleUpload} 
               disabled={isUploading || !file}
             >
               {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Uploading...
-                </>
+                <div className="flex flex-col items-center justify-center w-full gap-2 relative z-10">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Uploading... {Math.round(uploadProgress)}%</span>
+                  </div>
+                  <div className="w-48 h-1.5 bg-primary-foreground/20 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary-foreground transition-all duration-300" 
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
               ) : (
-                <>
-                  <CheckCircle2 className="mr-2 h-5 w-5" /> Upload
-                </>
+                <div className="flex items-center justify-center gap-2 relative z-10">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>Upload</span>
+                </div>
               )}
             </Button>
           </div>
