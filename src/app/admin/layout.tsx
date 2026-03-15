@@ -58,12 +58,6 @@ export default function AdminLayout({
             </Link>
           </div>
           
-          <div className="hidden md:block ml-8">
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">
-              Command <span className="text-primary">Center</span>
-            </h2>
-          </div>
-          
           <div className="ml-auto flex items-center gap-4">
             <Button 
               variant="ghost" 

@@ -78,10 +78,13 @@ export function AdminSidebar() {
 
       <div className="p-4 border-t border-border/40 bg-muted/5 shrink-0">
         <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-background rounded-xl border border-border/10">
-           <Avatar className="h-9 w-9 border border-primary/20">
-             <AvatarImage src={photoURL} />
-             <AvatarFallback>AD</AvatarFallback>
-           </Avatar>
+           <div className="relative shrink-0">
+             <Avatar className="h-9 w-9 border border-primary/20">
+               <AvatarImage src={photoURL} />
+               <AvatarFallback>AD</AvatarFallback>
+             </Avatar>
+             <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 border-2 border-background rounded-full" />
+           </div>
            <div className="flex flex-col overflow-hidden">
              <span className="text-xs font-bold truncate">{displayName}</span>
              <span className="text-[9px] text-muted-foreground truncate uppercase tracking-widest font-bold">{bio}</span>
