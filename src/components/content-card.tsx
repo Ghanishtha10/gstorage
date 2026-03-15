@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
@@ -20,6 +20,7 @@ interface ContentCardProps {
 
 export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: ContentCardProps) {
   const [mounted, setMounted] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -39,22 +40,29 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
 
   const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
 
-  const handleDownload = (e: React.MouseEvent) => {
-    // Prevent event bubbling if necessary, though here we want the click to trigger the anchor
-    // If we wanted to do it purely via JS:
-    // const link = document.createElement('a');
-    // link.href = file.url;
-    // link.download = file.name;
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
+  const handleDownload = () => {
+    setIsDownloading(true);
+    try {
+      // Create a temporary link and trigger download
+      // Using programmatic approach to avoid loading massive strings into the DOM attribute
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    } finally {
+      // Small timeout to show the "active" state
+      setTimeout(() => setIsDownloading(false), 800);
+    }
   };
 
   return (
     <Card 
       className={cn(
         "group overflow-hidden transition-all duration-300 hover:ring-2 hover:ring-primary/50 bg-card border-border/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both",
-        index > 0 && `delay-[${Math.min(index * 50, 500)}ms]`
       )}
       style={{ animationDelay: `${Math.min(index * 75, 600)}ms` }}
     >
@@ -73,10 +81,15 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
-           <Button asChild size="sm" variant="secondary" className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold">
-             <a href={file.url} download={file.name} target="_blank" rel="noopener noreferrer">
-               <Download className="h-4 w-4" /> Download
-             </a>
+           <Button 
+             size="sm" 
+             variant="secondary" 
+             className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold"
+             onClick={handleDownload}
+             disabled={isDownloading}
+           >
+             {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+             {isDownloading ? "Preparing..." : "Download"}
            </Button>
         </div>
       </div>
