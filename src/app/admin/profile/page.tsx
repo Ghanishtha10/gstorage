@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -128,7 +127,7 @@ export default function AdminProfilePage() {
             </div>
             <div className="text-center">
               <p className="font-bold text-xl">{displayName || 'Administrator'}</p>
-              <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">{user?.email || 'admin@gstorage.com'}</p>
+              <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">{user?.email || 'Authorized Account'}</p>
             </div>
           </div>
 
@@ -139,7 +138,7 @@ export default function AdminProfilePage() {
                 id="displayName" 
                 value={displayName} 
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="e.g. Master Admin"
+                placeholder="Enter display name"
                 className="bg-background/50 h-11"
               />
             </div>

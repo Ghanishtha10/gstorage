@@ -7,7 +7,7 @@ import { Database, ArrowLeft, Loader2, ShieldCheck, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -77,14 +77,14 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6 pt-10 pb-10">
+            <CardContent className="space-y-6 pt-10 pb-12">
               <div className="space-y-3">
                 <Label htmlFor="username" className="font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Admin Username</Label>
                 <div className="relative group">
                   <Input 
                     id="username" 
                     type="text" 
-                    placeholder="admin" 
+                    placeholder="Enter username" 
                     className="bg-background/50 pl-11 h-12 border-border/40 focus:ring-primary/20 transition-all rounded-xl"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -118,25 +118,6 @@ export default function LoginPage() {
               </Button>
             </CardContent>
           </form>
-          <CardFooter className="flex flex-col gap-4 bg-muted/20 border-t border-border/10 p-8">
-            <div className="w-full space-y-4">
-              <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-[0.3em] justify-center">
-                <div className="h-px bg-border/40 flex-1" />
-                Access Protocol
-                <div className="h-px bg-border/40 flex-1" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-background/40 border border-border/30 rounded-2xl p-3 text-center transition-all hover:bg-background/60">
-                  <p className="text-[9px] text-muted-foreground/60 uppercase font-bold mb-1 tracking-widest">User</p>
-                  <p className="font-mono text-xs font-bold text-primary">admin</p>
-                </div>
-                <div className="bg-background/40 border border-border/30 rounded-2xl p-3 text-center transition-all hover:bg-background/60">
-                  <p className="text-[9px] text-muted-foreground/60 uppercase font-bold mb-1 tracking-widest">Pass</p>
-                  <p className="font-mono text-xs font-bold text-primary">admin123</p>
-                </div>
-              </div>
-            </div>
-          </CardFooter>
         </Card>
 
         <p className="text-center text-[9px] text-muted-foreground/40 uppercase tracking-[0.5em] font-bold animate-pulse">
