@@ -2,13 +2,14 @@
 
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { MobileNav } from '@/components/mobile-nav';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2, Database, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
+import { doc } from 'firebase/firestore';
 
 export default function AdminLayout({
   children,
@@ -17,7 +18,15 @@ export default function AdminLayout({
 }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'public_profiles', 'admin');
+  }, [db]);
+
+  const { data: profile } = useDoc(profileRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -59,6 +68,10 @@ export default function AdminLayout({
           </div>
           
           <div className="ml-auto flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+              <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">System Online</span>
+            </div>
             <Button 
               variant="ghost" 
               size="icon" 
