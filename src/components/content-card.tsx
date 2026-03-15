@@ -47,21 +47,29 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     try {
       let downloadUrl = file.url;
 
-      // If the URL is a Data URI (Base64), convert to a Blob for better performance
+      // Robust check for Data URI (Base64)
       if (downloadUrl.startsWith('data:')) {
-        const response = await fetch(downloadUrl);
-        const blob = await response.blob();
+        // Use a more direct method to convert data URI to a blob for download
+        const parts = downloadUrl.split(',');
+        const mime = parts[0].match(/:(.*?);/)?.[1] || file.mimeType;
+        const bstr = atob(parts[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], { type: mime });
         downloadUrl = URL.createObjectURL(blob);
       }
 
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = file.name;
+      link.setAttribute('download', file.name); // Force download attribute
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      // Clean up temporary object URL
+      // Clean up temporary object URL if we created one
       if (downloadUrl.startsWith('blob:')) {
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
       }
