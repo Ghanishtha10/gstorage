@@ -40,22 +40,35 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
 
   const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    if (isDownloading) return;
     setIsDownloading(true);
+    
     try {
-      // Create a temporary link and trigger download
-      // Using programmatic approach to avoid loading massive strings into the DOM attribute
+      let downloadUrl = file.url;
+
+      // If the URL is a Data URI (Base64), convert to a Blob for better performance
+      if (downloadUrl.startsWith('data:')) {
+        const response = await fetch(downloadUrl);
+        const blob = await response.blob();
+        downloadUrl = URL.createObjectURL(blob);
+      }
+
       const link = document.createElement('a');
-      link.href = file.url;
+      link.href = downloadUrl;
       link.download = file.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Clean up temporary object URL
+      if (downloadUrl.startsWith('blob:')) {
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+      }
     } catch (error) {
-      console.error("Download failed:", error);
+      console.error("Download execution failed:", error);
     } finally {
-      // Small timeout to show the "active" state
-      setTimeout(() => setIsDownloading(false), 800);
+      setIsDownloading(false);
     }
   };
 
@@ -85,11 +98,14 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
              size="sm" 
              variant="secondary" 
              className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold"
-             onClick={handleDownload}
+             onClick={(e) => {
+               e.preventDefault();
+               handleDownload();
+             }}
              disabled={isDownloading}
            >
              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-             {isDownloading ? "Preparing..." : "Download"}
+             {isDownloading ? "Extracting..." : "Download"}
            </Button>
         </div>
       </div>
