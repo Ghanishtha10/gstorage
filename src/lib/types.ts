@@ -1,4 +1,4 @@
-export type FileType = 'image' | 'video' | 'audio' | 'document' | 'other';
+export type FileType = string;
 
 export interface ContentFile {
   id: string;

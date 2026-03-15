@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 
@@ -44,7 +43,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
 
   // Edit states
   const [editName, setEditName] = useState('');
-  const [editType, setEditType] = useState<ContentFile['type']>('other');
+  const [editType, setEditType] = useState<string>('');
   const [editThumb, setEditThumb] = useState('');
 
   const handleDelete = async () => {
@@ -81,7 +80,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     try {
       await updateDoc(doc(db, 'files', fileToEdit.id), {
         name: editName,
-        type: editType,
+        type: editType || 'other',
         thumbnailUrl: editThumb || null,
       });
       toast({
@@ -174,19 +173,14 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-type" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
-              <Select value={editType} onValueChange={(v) => setEditType(v as any)}>
-                <SelectTrigger className="bg-muted/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="image">Image</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
-                  <SelectItem value="audio">Audio</SelectItem>
-                  <SelectItem value="document">Document</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-type" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category / Kind</Label>
+              <Input 
+                id="edit-type" 
+                value={editType} 
+                onChange={(e) => setEditType(e.target.value)}
+                placeholder="e.g. PDF, Image, Archive..."
+                className="bg-muted/30"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-thumb" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail URL</Label>

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -20,7 +19,7 @@ export function FileUploadForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
-  const [fileType, setFileType] = useState<FileType>('other');
+  const [fileType, setFileType] = useState<FileType>('');
   const [customThumbUrl, setCustomThumbUrl] = useState('');
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +30,7 @@ export function FileUploadForm() {
   useEffect(() => {
     if (file) {
       setDisplayName(file.name);
+      // Auto-suggest category based on mime type
       if (file.type.startsWith('image/')) setFileType('image');
       else if (file.type.startsWith('video/')) setFileType('video');
       else if (file.type.startsWith('audio/')) setFileType('audio');
@@ -50,7 +50,6 @@ export function FileUploadForm() {
     const selected = e.target.files?.[0];
     if (selected) {
       setThumbFile(selected);
-      // Simulate preview URL for UI feedback
       setCustomThumbUrl(URL.createObjectURL(selected));
     }
   };
@@ -83,20 +82,19 @@ export function FileUploadForm() {
     setIsUploading(true);
     
     try {
-      // Simulation of URL generation for prototype
       const fakeUrl = fileType === 'image' 
         ? `https://picsum.photos/seed/${Math.random()}/800/600`
         : `https://placehold.co/600x400?text=${encodeURIComponent(displayName)}`;
 
       const finalThumb = thumbFile 
-        ? `https://picsum.photos/seed/${Math.random()}/400/300` // Simulated upload
+        ? `https://picsum.photos/seed/${Math.random()}/400/300` 
         : customThumbUrl;
 
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: fakeUrl,
         thumbnailUrl: finalThumb || null,
-        type: fileType,
+        type: fileType || 'other',
         mimeType: file.type,
         size: file.size,
         tags: ['General'],
@@ -171,7 +169,7 @@ export function FileUploadForm() {
                   {fileType === 'video' && <Video className="h-5 w-5 text-primary" />}
                   {fileType === 'audio' && <Headphones className="h-5 w-5 text-primary" />}
                   {fileType === 'document' && <FileText className="h-5 w-5 text-primary" />}
-                  {fileType === 'other' && <Upload className="h-5 w-5 text-primary" />}
+                  {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-5 w-5 text-primary" />}
                 </div>
                 <div>
                   <p className="font-medium text-sm truncate max-w-[200px]">{file.name}</p>
@@ -196,19 +194,14 @@ export function FileUploadForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fileType" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category Type</Label>
-                <Select value={fileType} onValueChange={(v) => setFileType(v as FileType)}>
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="image">Image (Photo/Graphic)</SelectItem>
-                    <SelectItem value="video">Video (MP4/MOV)</SelectItem>
-                    <SelectItem value="audio">Audio (MP3/WAV)</SelectItem>
-                    <SelectItem value="document">Document (PDF/Word)</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="fileType" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category / Kind</Label>
+                <Input 
+                  id="fileType" 
+                  value={fileType} 
+                  onChange={(e) => setFileType(e.target.value)}
+                  placeholder="e.g. PDF, Image, MP3, Blueprint..."
+                  className="bg-background/50"
+                />
               </div>
 
               <div className="md:col-span-2 space-y-4">
