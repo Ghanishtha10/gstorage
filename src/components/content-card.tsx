@@ -39,6 +39,17 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
 
   const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
 
+  const handleDownload = (e: React.MouseEvent) => {
+    // Prevent event bubbling if necessary, though here we want the click to trigger the anchor
+    // If we wanted to do it purely via JS:
+    // const link = document.createElement('a');
+    // link.href = file.url;
+    // link.download = file.name;
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
+  };
+
   return (
     <Card 
       className={cn(
@@ -62,8 +73,10 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
-           <Button size="sm" variant="secondary" className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold">
-             <Download className="h-4 w-4" /> Download
+           <Button asChild size="sm" variant="secondary" className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold">
+             <a href={file.url} download={file.name} target="_blank" rel="noopener noreferrer">
+               <Download className="h-4 w-4" /> Download
+             </a>
            </Button>
         </div>
       </div>
