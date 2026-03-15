@@ -42,7 +42,7 @@ export function FileUploadForm() {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "Files must be under 50MB.",
+          description: "Maximum file size is 50MB.",
         });
         setFile(null);
       }
@@ -92,12 +92,10 @@ export function FileUploadForm() {
     setIsUploading(true);
     
     try {
-      // 1. Upload main file to Firebase Storage
       const fileRef = ref(storage, `uploads/${Date.now()}-${file.name}`);
       const fileSnapshot = await uploadBytes(fileRef, file);
       const fileUrl = await getDownloadURL(fileSnapshot.ref);
 
-      // 2. Handle Thumbnail upload if exists
       let finalThumb = customThumbUrl;
       if (thumbFile) {
         const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name}`);
@@ -105,7 +103,6 @@ export function FileUploadForm() {
         finalThumb = await getDownloadURL(thumbSnapshot.ref);
       }
 
-      // 3. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: fileUrl,
@@ -119,7 +116,7 @@ export function FileUploadForm() {
 
       toast({
         title: "Success",
-        description: "File uploaded successfully.",
+        description: "File added to the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
@@ -127,7 +124,7 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: error.message || "Could not complete the upload.",
+        description: error.message || "Could not complete the process.",
       });
     } finally {
       setIsUploading(false);
@@ -135,25 +132,25 @@ export function FileUploadForm() {
   };
 
   return (
-    <Card className="bg-card border-border/40 overflow-hidden shadow-xl">
-      <CardHeader className="bg-muted/30 pb-6">
-        <CardTitle className="flex items-center gap-2 text-primary">
+    <Card className="bg-card border-border/40 overflow-hidden shadow-2xl rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <CardHeader className="bg-muted/10 pb-6 border-b border-border/20">
+        <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-sm font-bold">
           <HardDrive className="h-5 w-5" />
           <span>Asset Upload</span>
         </CardTitle>
-        <CardDescription>Select a file to add to your secure library.</CardDescription>
+        <CardDescription className="text-xs">Securely add new files to the storage locker.</CardDescription>
       </CardHeader>
-      <CardContent className="p-8 space-y-8">
+      <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
           <div 
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
             className={cn(
-              "border-2 border-dashed rounded-2xl p-12 text-center space-y-4 transition-all cursor-pointer group relative",
+              "border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center space-y-4 transition-all cursor-pointer group relative",
               isDragging 
                 ? "border-primary bg-primary/5 scale-[0.99] shadow-inner" 
-                : "border-border/60 hover:border-primary/50 hover:bg-muted/30"
+                : "border-border/60 hover:border-primary/50 hover:bg-muted/10"
             )}
           >
             <input 
@@ -164,67 +161,67 @@ export function FileUploadForm() {
             />
             <div className="pointer-events-none">
               <div className={cn(
-                "h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors",
-                isDragging ? "bg-primary/20" : "bg-muted/50 group-hover:bg-primary/10"
+                "h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm",
+                isDragging ? "bg-primary/20 scale-110" : "bg-muted/30 group-hover:bg-primary/10 group-hover:scale-105"
               )}>
                 <Upload className={cn(
-                  "h-8 w-8 transition-colors",
+                  "h-10 w-10 transition-colors",
                   isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary"
                 )} />
               </div>
-              <h4 className="font-semibold text-lg">
-                {isDragging ? "Drop to upload" : "Select or drag asset"}
+              <h4 className="font-bold text-xl uppercase tracking-tight">
+                {isDragging ? "Release to upload" : "Select or drag asset"}
               </h4>
-              <p className="text-sm text-muted-foreground text-balance">PDFs, Archives, Media, and more. Max 50MB.</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports files up to 50MB</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/40 border-border/60 shadow-sm">
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-4 rounded-2xl border bg-muted/20 border-border/40 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  {fileType === 'image' && <ImageIcon className="h-5 w-5 text-primary" />}
-                  {fileType === 'video' && <Video className="h-5 w-5 text-primary" />}
-                  {fileType === 'audio' && <Headphones className="h-5 w-5 text-primary" />}
-                  {fileType === 'document' && <FileText className="h-5 w-5 text-primary" />}
-                  {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-5 w-5 text-primary" />}
+                <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center shadow-inner">
+                  {fileType === 'image' && <ImageIcon className="h-6 w-6 text-primary" />}
+                  {fileType === 'video' && <Video className="h-6 w-6 text-primary" />}
+                  {fileType === 'audio' && <Headphones className="h-6 w-6 text-primary" />}
+                  {fileType === 'document' && <FileText className="h-6 w-6 text-primary" />}
+                  {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-6 w-6 text-primary" />}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="font-bold text-sm truncate max-w-[200px]">{file.name}</p>
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                  <p className="font-bold text-sm truncate max-w-[140px] sm:max-w-[300px]">{file.name}</p>
+                  <p className="text-[10px] font-bold uppercase text-primary tracking-widest">
                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full">
+                <X className="h-5 w-5" />
               </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
+                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Display Name</Label>
                 <input 
                   id="displayName" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="flex h-11 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kind / Category</Label>
+                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Kind / Category</Label>
                 <input 
                   id="fileType" 
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
                   placeholder="e.g. PDF, Archive, Source..."
-                  className="flex h-11 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-4">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Preview Thumbnail (Optional)</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail Configuration</Label>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input 
                     id="thumbUrl" 
@@ -234,7 +231,7 @@ export function FileUploadForm() {
                       setThumbFile(null);
                     }}
                     placeholder="URL or use the upload button..."
-                    className="flex h-11 flex-1 rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background"
+                    className="flex h-12 flex-1 rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background transition-all"
                     readOnly={!!thumbFile}
                   />
                   <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={handleThumbChange} />
@@ -242,7 +239,7 @@ export function FileUploadForm() {
                     type="button" 
                     variant="outline" 
                     onClick={() => thumbInputRef.current?.click()} 
-                    className="h-11 px-6 border-primary/20 hover:border-primary/50 text-xs font-bold uppercase"
+                    className="h-12 px-6 border-primary/20 hover:border-primary/50 text-[10px] font-bold uppercase tracking-widest rounded-xl bg-background/50"
                   >
                     <Camera className="h-4 w-4 mr-2" /> {thumbFile ? "Change" : "Upload"}
                   </Button>
@@ -251,7 +248,7 @@ export function FileUploadForm() {
             </div>
 
             <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-xs" 
               onClick={handleUpload} 
               disabled={isUploading || !file}
             >

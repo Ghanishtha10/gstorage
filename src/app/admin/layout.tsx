@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AdminSidebar } from '@/components/admin-sidebar';
@@ -33,10 +32,10 @@ export default function AdminLayout({
 
   if (isUserLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground animate-pulse">Verifying credentials...</p>
+          <p className="text-muted-foreground animate-pulse font-bold uppercase tracking-widest text-[10px]">Verifying credentials...</p>
         </div>
       </div>
     );
@@ -45,10 +44,10 @@ export default function AdminLayout({
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <AdminSidebar />
-      <main className="flex-1 flex flex-col max-h-screen overflow-hidden">
-        <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/50 backdrop-blur shrink-0">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/50 backdrop-blur shrink-0 z-10">
           <div className="md:hidden flex items-center gap-1 mr-4">
             <MobileNav />
             <Button asChild variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary" title="Go to Homepage">
@@ -58,14 +57,14 @@ export default function AdminLayout({
             </Button>
           </div>
           
-          <h2 className="text-sm font-medium text-muted-foreground tracking-tight hidden xs:block truncate max-w-[150px] sm:max-w-none">
-            Admin / G storage
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest hidden xs:block truncate max-w-[150px] sm:max-w-none">
+            Admin / <span className="text-primary">G storage</span>
           </h2>
           
           <div className="ml-auto flex items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              <span className="text-xs font-medium text-muted-foreground hidden sm:inline">System Online</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hidden sm:inline">System Online</span>
             </div>
             
             <Button 
@@ -79,8 +78,10 @@ export default function AdminLayout({
             </Button>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          {children}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-background/50">
+          <div className="max-w-7xl mx-auto w-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>
