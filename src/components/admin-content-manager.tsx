@@ -3,9 +3,8 @@
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
 import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
-import { useFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -28,13 +27,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState, useRef } from 'react';
+import { fileToBase64 } from '@/lib/utils';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
 }
 
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
-  const { firestore: db, storage } = useFirebase();
+  const db = useFirestore();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
@@ -56,7 +56,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       await deleteDoc(doc(db, 'files', fileToDelete));
       toast({
         title: "File Deleted",
-        description: "The item has been permanently removed from the repository.",
+        description: "The item has been permanently removed.",
       });
       setFileToDelete(null);
     } catch (error) {
@@ -78,22 +78,13 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     setEditThumbFile(null);
   };
 
-  const handleThumbFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setEditThumbFile(selected);
-    }
-  };
-
   const handleUpdate = async () => {
-    if (!db || !fileToEdit || !storage) return;
+    if (!db || !fileToEdit) return;
     setIsUpdating(true);
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${editThumbFile.name}`);
-        const snapshot = await uploadBytes(thumbRef, editThumbFile);
-        finalThumb = await getDownloadURL(snapshot.ref);
+        finalThumb = await fileToBase64(editThumbFile);
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
@@ -157,15 +148,11 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete();
-              }} 
+              onClick={(e) => { e.preventDefault(); handleDelete(); }} 
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {isDeleting ? "Deleting..." : "Permanently Delete"}
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Permanently Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -176,75 +163,26 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit File Metadata</DialogTitle>
-            <DialogDescription>
-              Modify how this asset appears in the digital vault.
-            </DialogDescription>
+            <DialogDescription>Modify how this asset appears in the digital vault.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
-              <input 
-                id="edit-name" 
-                value={editName} 
-                onChange={(e) => setEditName(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              />
+              <input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-type" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category / Kind</Label>
-              <input 
-                id="edit-type" 
-                value={editType} 
-                onChange={(e) => setEditType(e.target.value)}
-                placeholder="e.g. PDF, Image, Archive..."
-                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              />
+              <input id="edit-type" value={editType} onChange={(e) => setEditType(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm" />
             </div>
             <div className="space-y-4">
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail Configuration</Label>
-              <div className="space-y-2">
-                <input 
-                  id="edit-thumb" 
-                  value={editThumbFile ? `[Asset Selected: ${editThumbFile.name}]` : editThumb} 
-                  onChange={(e) => {
-                    setEditThumb(e.target.value);
-                    setEditThumbFile(null);
-                  }}
-                  placeholder="https://..."
-                  className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background"
-                  readOnly={!!editThumbFile}
-                />
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    ref={editThumbInputRef} 
-                    accept="image/*"
-                    onChange={handleThumbFileChange}
-                  />
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    size="sm"
-                    className="gap-2 border-primary/20 hover:border-primary/50 text-[10px] font-bold uppercase"
-                    onClick={() => editThumbInputRef.current?.click()}
-                  >
-                    {editThumbFile ? <CheckCircle2 className="h-3 w-3 text-secondary" /> : <Camera className="h-3 w-3" />}
-                    {editThumbFile ? "New Image Selected" : "Upload New Thumbnail"}
-                  </Button>
-                  {editThumbFile && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-destructive"
-                      onClick={() => {
-                        setEditThumbFile(null);
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail</Label>
+              <div className="flex gap-2">
+                <input type="file" className="hidden" ref={editThumbInputRef} accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) setEditThumbFile(f); }} />
+                <Button variant="outline" size="sm" className="gap-2 border-primary/20" onClick={() => editThumbInputRef.current?.click()}>
+                  {editThumbFile ? <CheckCircle2 className="h-3 w-3 text-secondary" /> : <Camera className="h-3 w-3" />}
+                  {editThumbFile ? "New Image Selected" : "Upload Thumbnail"}
+                </Button>
+                {editThumbFile && <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setEditThumbFile(null)}><X className="h-4 w-4" /></Button>}
               </div>
             </div>
           </div>

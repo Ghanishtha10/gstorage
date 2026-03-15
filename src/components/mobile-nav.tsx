@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, LayoutDashboard, Upload, LogOut, Database, Home, UserCircle, ShieldCheck } from "lucide-react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
@@ -71,7 +71,7 @@ export function MobileNav() {
                  <AvatarImage src={photoURL} />
                  <AvatarFallback>AD</AvatarFallback>
                </Avatar>
-               <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-background rounded-full" />
+               <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-background rounded-full shadow-sm" />
              </div>
              <div className="flex flex-col overflow-hidden">
                <span className="text-sm font-bold truncate">{displayName}</span>

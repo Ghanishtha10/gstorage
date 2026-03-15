@@ -83,7 +83,7 @@ export function AdminSidebar() {
                <AvatarImage src={photoURL} />
                <AvatarFallback>AD</AvatarFallback>
              </Avatar>
-             <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 border-2 border-background rounded-full" />
+             <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 border-2 border-background rounded-full shadow-sm" />
            </div>
            <div className="flex flex-col overflow-hidden">
              <span className="text-xs font-bold truncate">{displayName}</span>

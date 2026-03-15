@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useFirebase } from '@/firebase';
+import { useState, useEffect, useRef } from 'react';
+import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, fileToBase64 } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit
+const MAX_FILE_SIZE = 700 * 1024; // 700KB limit for Firestore strings
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -26,7 +25,7 @@ export function FileUploadForm() {
   const [customThumbUrl, setCustomThumbUrl] = useState('');
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
-  const { firestore: db, storage } = useFirebase();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -43,7 +42,7 @@ export function FileUploadForm() {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "Maximum file size is 50MB.",
+          description: "Maximum file size for this vault is 700KB.",
         });
         setFile(null);
       }
@@ -52,86 +51,36 @@ export function FileUploadForm() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-    }
+    if (selected) setFile(selected);
   };
 
   const handleThumbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
-    if (selected) {
-      setThumbFile(selected);
-    }
+    if (selected) setThumbFile(selected);
   };
 
-  const onDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const onDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      setFile(droppedFile);
-    }
-  }, []);
-
   const handleUpload = async () => {
-    if (!file || !db || !storage) return;
+    if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(10); // Start progress
     
     try {
-      // 1. Upload the main file with progress tracking
-      const fileRef = ref(storage, `uploads/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
-      const uploadTask = uploadBytesResumable(fileRef, file);
+      // Convert main file to Base64
+      const fileDataUri = await fileToBase64(file);
+      setUploadProgress(60);
 
-      const fileUrl = await new Promise<string>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(Math.max(1, progress));
-          },
-          (error) => {
-            console.error("Storage upload error:", error);
-            reject(error);
-          },
-          async () => {
-            try {
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(url);
-            } catch (err) {
-              reject(err);
-            }
-          }
-        );
-      });
-
-      // 2. Upload thumbnail if provided
+      // Convert thumbnail if provided
       let finalThumb = customThumbUrl;
       if (thumbFile) {
-        const thumbRef = ref(storage, `thumbnails/${Date.now()}_${thumbFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
-        await uploadBytesResumable(thumbRef, thumbFile);
-        finalThumb = await getDownloadURL(thumbRef);
+        finalThumb = await fileToBase64(thumbFile);
       }
+      setUploadProgress(80);
 
-      // 3. Save metadata to Firestore
+      // Save metadata and content to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: fileUrl,
+        url: fileDataUri,
         thumbnailUrl: finalThumb || null,
         type: fileType || 'other',
         mimeType: file.type,
@@ -151,7 +100,7 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: "Verify your Storage bucket is enabled and try again.",
+        description: "An error occurred during the secure transfer.",
       });
     } finally {
       setIsUploading(false);
@@ -165,41 +114,29 @@ export function FileUploadForm() {
           <HardDrive className="h-5 w-5" />
           <span>Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-xs">Securely upload files up to 50MB.</CardDescription>
+        <CardDescription className="text-xs">Securely process files up to 700KB.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
           <div 
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if(f) setFile(f); }}
             className={cn(
               "border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center space-y-4 transition-all cursor-pointer group relative",
-              isDragging 
-                ? "border-primary bg-primary/5 scale-[0.99]" 
-                : "border-border/60 hover:border-primary/50 hover:bg-muted/10"
+              isDragging ? "border-primary bg-primary/5 scale-[0.99]" : "border-border/60 hover:border-primary/50 hover:bg-muted/10"
             )}
           >
-            <input 
-              type="file" 
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-              id="file-upload" 
-              onChange={handleFileChange} 
-            />
+            <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" id="file-upload" onChange={handleFileChange} />
             <div className="pointer-events-none">
               <div className={cn(
                 "h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm",
                 isDragging ? "bg-primary/20 scale-110" : "bg-muted/30 group-hover:bg-primary/10 group-hover:scale-105"
               )}>
-                <Upload className={cn(
-                  "h-10 w-10 transition-colors",
-                  isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary"
-                )} />
+                <Upload className={cn("h-10 w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
               </div>
-              <h4 className="font-bold text-xl uppercase tracking-tight">
-                {isDragging ? "Release to Begin" : "Select or Drag Asset"}
-              </h4>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports all standard formats</p>
+              <h4 className="font-bold text-xl uppercase tracking-tight">Select or Drag Asset</h4>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Optimized for small files</p>
             </div>
           </div>
         ) : (
@@ -216,7 +153,7 @@ export function FileUploadForm() {
                 <div className="overflow-hidden">
                   <p className="font-bold text-sm truncate max-w-[140px] sm:max-w-[300px]">{file.name}</p>
                   <p className="text-[10px] font-bold uppercase text-primary tracking-widest">
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    {(file.size / 1024).toFixed(1)} KB
                   </p>
                 </div>
               </div>
@@ -233,7 +170,7 @@ export function FileUploadForm() {
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
                   disabled={isUploading}
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
@@ -244,37 +181,9 @@ export function FileUploadForm() {
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
                   disabled={isUploading}
-                  placeholder="e.g. PDF, Archive..."
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                  placeholder="e.g. PDF, PNG..."
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
-              </div>
-
-              <div className="md:col-span-2 space-y-4">
-                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail Configuration</Label>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <input 
-                    id="thumbUrl" 
-                    value={thumbFile ? `[File Selected: ${thumbFile.name}]` : customThumbUrl} 
-                    onChange={(e) => {
-                      setCustomThumbUrl(e.target.value);
-                      setThumbFile(null);
-                    }}
-                    disabled={isUploading}
-                    placeholder="External URL or upload..."
-                    className="flex h-12 flex-1 rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background transition-all"
-                    readOnly={!!thumbFile}
-                  />
-                  <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={handleThumbChange} />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    disabled={isUploading}
-                    onClick={() => thumbInputRef.current?.click()} 
-                    className="h-12 px-6 border-primary/20 hover:border-primary/50 text-[10px] font-bold uppercase tracking-widest rounded-xl bg-background/50"
-                  >
-                    <Camera className="h-4 w-4 mr-2" /> {thumbFile ? "Change" : "Upload"}
-                  </Button>
-                </div>
               </div>
             </div>
 
@@ -285,7 +194,7 @@ export function FileUploadForm() {
             >
               {isUploading && (
                 <div 
-                  className="absolute inset-0 bg-primary/40 transition-all duration-300 ease-out" 
+                  className="absolute inset-y-0 left-0 bg-white/20 transition-all duration-300 ease-out" 
                   style={{ width: `${uploadProgress}%` }}
                 />
               )}

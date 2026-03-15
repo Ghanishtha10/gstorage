@@ -68,7 +68,7 @@ export default function AdminLayout({
           </div>
           
           <div className="ml-auto flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
               <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">System Online</span>
             </div>
