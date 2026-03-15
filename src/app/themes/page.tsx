@@ -89,7 +89,7 @@ export default function ThemesPage() {
       </main>
 
       <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
-        <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">
+        <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold font-mono">
           <p>© {new Date().getFullYear()} G storage secure systems.</p>
         </div>
       </footer>
