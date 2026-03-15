@@ -58,6 +58,9 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="flex flex-col items-center text-center space-y-4">
+          <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-2 shadow-inner group">
+            <Database className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+          </div>
           <div className="space-y-1">
             <h1 className="text-4xl font-headline font-bold tracking-tight uppercase">G <span className="text-primary">storage</span></h1>
             <p className="text-muted-foreground text-[10px] uppercase tracking-[0.4em] font-bold">Secure Admin Access</p>

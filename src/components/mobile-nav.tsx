@@ -47,6 +47,7 @@ export function MobileNav() {
         
         <div className="p-6 border-b border-border/40 bg-muted/20">
           <div className="flex items-center gap-2 mb-6">
+            <Database className="h-6 w-6 text-primary" />
             <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
           </div>
 

@@ -32,6 +32,7 @@ export function AdminSidebar() {
     <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col">
       <div className="p-6 border-b border-border/40 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
+          <Database className="h-5 w-5 text-primary" />
           <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
         </Link>
         <ThemeToggle />

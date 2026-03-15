@@ -47,6 +47,7 @@ export default function Home() {
       <header className="border-b border-border/40 bg-card/50 backdrop-blur sticky top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
+            <Database className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
             <span className="font-headline font-bold text-xl tracking-tight">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
