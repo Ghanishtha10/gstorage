@@ -2,7 +2,7 @@
 
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2 } from 'lucide-react';
+import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
@@ -45,6 +45,9 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   const [editName, setEditName] = useState('');
   const [editType, setEditType] = useState<string>('');
   const [editThumb, setEditThumb] = useState('');
+  const [editThumbFile, setEditThumbFile] = useState<File | null>(null);
+  
+  const editThumbInputRef = useRef<HTMLInputElement>(null);
 
   const handleDelete = async () => {
     if (!db || !fileToDelete) return;
@@ -72,16 +75,30 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     setEditName(file.name);
     setEditType(file.type);
     setEditThumb(file.thumbnailUrl || '');
+    setEditThumbFile(null);
+  };
+
+  const handleThumbFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setEditThumbFile(selected);
+      setEditThumb(URL.createObjectURL(selected));
+    }
   };
 
   const handleUpdate = async () => {
     if (!db || !fileToEdit) return;
     setIsUpdating(true);
     try {
+      // In this prototype, we simulate the upload by generating a picsum URL if a new file is provided
+      const finalThumb = editThumbFile 
+        ? `https://picsum.photos/seed/${Math.random()}/400/300` 
+        : editThumb;
+
       await updateDoc(doc(db, 'files', fileToEdit.id), {
         name: editName,
         type: editType || 'other',
-        thumbnailUrl: editThumb || null,
+        thumbnailUrl: finalThumb || null,
       });
       toast({
         title: "File Updated",
@@ -182,15 +199,52 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                 className="bg-muted/30"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-thumb" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail URL</Label>
-              <Input 
-                id="edit-thumb" 
-                value={editThumb} 
-                onChange={(e) => setEditThumb(e.target.value)}
-                placeholder="https://..."
-                className="bg-muted/30"
-              />
+            <div className="space-y-4">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail Configuration</Label>
+              <div className="space-y-2">
+                <Input 
+                  id="edit-thumb" 
+                  value={editThumb} 
+                  onChange={(e) => {
+                    setEditThumb(e.target.value);
+                    setEditThumbFile(null);
+                  }}
+                  placeholder="https://..."
+                  className="bg-muted/30"
+                />
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    ref={editThumbInputRef} 
+                    accept="image/*"
+                    onChange={handleThumbFileChange}
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    className="gap-2 border-primary/20 hover:border-primary/50 text-[10px] font-bold uppercase"
+                    onClick={() => editThumbInputRef.current?.click()}
+                  >
+                    {editThumbFile ? <CheckCircle2 className="h-3 w-3 text-secondary" /> : <Camera className="h-3 w-3" />}
+                    {editThumbFile ? "New Image Selected" : "Upload New Thumbnail"}
+                  </Button>
+                  {editThumbFile && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => {
+                        setEditThumbFile(null);
+                        setEditThumb(fileToEdit?.thumbnailUrl || '');
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
