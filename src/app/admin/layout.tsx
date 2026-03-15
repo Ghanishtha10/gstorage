@@ -44,11 +44,11 @@ export default function AdminLayout({
   if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
       <AdminSidebar />
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
-        <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/50 backdrop-blur shrink-0 z-20">
-          <div className="flex items-center gap-3 mr-4">
+      <div className="flex-1 flex flex-col min-w-0 h-full relative">
+        <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/80 backdrop-blur-md shrink-0 z-30">
+          <div className="flex items-center gap-3">
             <div className="md:hidden">
               <MobileNav />
             </div>
@@ -58,22 +58,22 @@ export default function AdminLayout({
             </Link>
           </div>
           
-          <div className="hidden md:block ml-4">
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] truncate">
+          <div className="hidden md:block ml-8">
+            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">
               Command <span className="text-primary">Center</span>
             </h2>
           </div>
           
-          <div className="ml-auto flex items-center gap-2 sm:gap-4">
+          <div className="ml-auto flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">System Active</span>
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Secure Link Active</span>
             </div>
             
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-9 w-9 text-destructive md:hidden" 
+              className="h-9 w-9 text-destructive md:hidden hover:bg-destructive/10" 
               onClick={handleLogout}
               title="Logout"
             >
@@ -81,12 +81,13 @@ export default function AdminLayout({
             </Button>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto bg-background/50 scroll-smooth custom-scrollbar">
+
+        <main className="flex-1 overflow-y-auto bg-background/50 custom-scrollbar">
           <div className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-24">
             {children}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

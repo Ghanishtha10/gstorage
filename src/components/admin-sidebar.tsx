@@ -30,7 +30,7 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full overflow-hidden shrink-0">
+    <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full shrink-0">
       <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0">
         <Link href="/" className="flex items-center gap-2 group">
           <Database className="h-5 w-5 text-primary" />
@@ -63,15 +63,15 @@ export function AdminSidebar() {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-border/40 bg-muted/10 shrink-0 mt-auto">
-        <div className="flex items-center gap-3 px-4 py-3 mb-4 bg-background rounded-xl border border-border/10">
-           <Avatar className="h-9 w-9 border-2 border-primary/20">
+      <div className="p-4 border-t border-border/40 bg-muted/5 shrink-0">
+        <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-background rounded-xl border border-border/10">
+           <Avatar className="h-9 w-9 border border-primary/20">
              <AvatarImage src={user?.photoURL || `https://picsum.photos/seed/${user?.uid || 'admin'}/100/100`} />
              <AvatarFallback>AD</AvatarFallback>
            </Avatar>
            <div className="flex flex-col overflow-hidden">
-             <span className="text-sm font-semibold truncate">{user?.displayName || 'Admin User'}</span>
-             <span className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">{user?.email?.split('@')[0] || 'admin'}</span>
+             <span className="text-xs font-bold truncate">{user?.displayName || 'Admin'}</span>
+             <span className="text-[9px] text-muted-foreground truncate uppercase tracking-widest font-bold">Authorized</span>
            </div>
         </div>
         <Button 

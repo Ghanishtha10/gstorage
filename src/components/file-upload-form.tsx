@@ -102,11 +102,9 @@ export function FileUploadForm() {
         uploadTask.on(
           'state_changed',
           (snapshot) => {
-            const progress = snapshot.totalBytes > 0 
-              ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
-              : 0;
-            // Ensure we show at least 1% if it's started
-            setUploadProgress(Math.max(progress, 1));
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            // Always show at least 1% once started to prevent looking "stuck"
+            setUploadProgress(Math.max(1, progress));
           },
           (error) => {
             console.error("Storage upload error:", error);
@@ -145,16 +143,16 @@ export function FileUploadForm() {
 
       setUploadProgress(100);
       toast({
-        title: "Success",
+        title: "Transfer Complete",
         description: "File successfully added to the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
-      console.error("Upload process failed:", error);
+      console.error("Upload failed:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: error.message || "Could not complete the transfer. Check permissions.",
+        description: "The secure transfer was interrupted. Please check your connection and retry.",
       });
     } finally {
       setIsUploading(false);
@@ -162,7 +160,7 @@ export function FileUploadForm() {
   };
 
   return (
-    <Card className="bg-card border-border/40 overflow-hidden shadow-2xl rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <Card className="bg-card border-border/40 overflow-hidden shadow-2xl rounded-2xl">
       <CardHeader className="bg-muted/10 pb-6 border-b border-border/20">
         <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-sm font-bold">
           <HardDrive className="h-5 w-5" />
@@ -179,7 +177,7 @@ export function FileUploadForm() {
             className={cn(
               "border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center space-y-4 transition-all cursor-pointer group relative",
               isDragging 
-                ? "border-primary bg-primary/5 scale-[0.99] shadow-inner" 
+                ? "border-primary bg-primary/5 scale-[0.99]" 
                 : "border-border/60 hover:border-primary/50 hover:bg-muted/10"
             )}
           >
@@ -288,7 +286,7 @@ export function FileUploadForm() {
             >
               {isUploading && (
                 <div 
-                  className="absolute inset-0 bg-primary/30 transition-all duration-300 ease-out" 
+                  className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out" 
                   style={{ width: `${uploadProgress}%` }}
                 />
               )}
