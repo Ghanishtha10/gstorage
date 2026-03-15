@@ -28,8 +28,8 @@ export function FileUploadForm() {
   const router = useRouter();
 
   // Firestore document limit is 1MB. Base64 adds ~33% overhead.
-  // We limit to ~750KB to stay safely under 1MB.
-  const MAX_FILE_SIZE = 750 * 1024;
+  // We limit to ~700KB to stay very safely under the hard 1,048,576 bytes limit.
+  const MAX_FILE_SIZE = 700 * 1024;
 
   useEffect(() => {
     if (file) {
@@ -86,7 +86,7 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "File Too Large",
-        description: "Firestore limits documents to 1MB. Please use files smaller than 750KB.",
+        description: "Prototype limit is 700KB to ensure secure database syncing.",
       });
       return;
     }
@@ -94,6 +94,7 @@ export function FileUploadForm() {
     setIsUploading(true);
     
     try {
+      // Convert the real file into a Base64 string for persistent storage
       const finalFileUrl = await fileToBase64(file);
 
       let finalThumb = customThumbUrl;
@@ -116,14 +117,15 @@ export function FileUploadForm() {
 
       toast({
         title: "Success",
-        description: "File added to the secure repository.",
+        description: "File successfully committed to the vault.",
       });
       router.push('/admin');
     } catch (error) {
+      console.error("Upload error:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: "There was an error persisting the data to Firestore.",
+        description: "The secure vault could not accept this file. Ensure it is under 700KB.",
       });
     } finally {
       setIsUploading(false);
@@ -133,12 +135,12 @@ export function FileUploadForm() {
   const isOverSize = file && file.size > MAX_FILE_SIZE;
 
   return (
-    <Card className="bg-card border-border/40 overflow-hidden">
+    <Card className="bg-card border-border/40 overflow-hidden shadow-xl">
       <CardHeader className="bg-muted/30 pb-6">
         <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5 text-primary" /> New Content Upload
+          <Upload className="h-5 w-5 text-primary" /> Secure Asset Upload
         </CardTitle>
-        <CardDescription>Store your files directly in the database locker.</CardDescription>
+        <CardDescription>Upload files under 700KB for real-time synchronization.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -170,16 +172,16 @@ export function FileUploadForm() {
                 )} />
               </div>
               <h4 className="font-semibold text-lg">
-                {isDragging ? "Ready to drop" : "Select or drag file"}
+                {isDragging ? "Drop to secure" : "Select or drag file"}
               </h4>
-              <p className="text-sm text-muted-foreground">PDF, MP3, Images, etc. (Max 750KB)</p>
+              <p className="text-sm text-muted-foreground">PDF, MP3, Source Code, etc. (Max 700KB)</p>
             </div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <div className={cn(
               "flex items-center justify-between p-4 rounded-xl border",
-              isOverSize ? "bg-destructive/10 border-destructive/40" : "bg-muted/40 border-border/60"
+              isOverSize ? "bg-destructive/10 border-destructive/40" : "bg-muted/40 border-border/60 shadow-sm"
             )}>
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -190,59 +192,67 @@ export function FileUploadForm() {
                   {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-5 w-5 text-primary" />}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="font-medium text-sm truncate max-w-[200px]">{file.name}</p>
-                  <p className={cn("text-xs font-bold", isOverSize ? "text-destructive" : "text-muted-foreground")}>
-                    {(file.size / (1024 * 1024)).toFixed(2)} MB {isOverSize && "(Exceeds Limit)"}
+                  <p className="font-bold text-sm truncate max-w-[200px]">{file.name}</p>
+                  <p className={cn("text-[10px] font-bold uppercase", isOverSize ? "text-destructive" : "text-muted-foreground")}>
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB {isOverSize && "!! EXCEEDS PROTOTYPE LIMIT !!"}
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)}>
+              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
             {isOverSize && (
-              <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-xs font-bold animate-pulse">
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-[10px] font-bold animate-pulse uppercase tracking-widest">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                This file exceeds the 1MB Firestore limit. Please upload a smaller file.
+                This file exceeds the 700KB database limit.
               </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
+                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Display Name</Label>
                 <input 
                   id="displayName" 
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-11 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fileType" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
+                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kind / Category</Label>
                 <input 
                   id="fileType" 
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
-                  placeholder="e.g. PDF, MP3, Source..."
-                  className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="e.g. PDF, Archive, Source..."
+                  className="flex h-11 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
               <div className="md:col-span-2 space-y-4">
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Thumbnail (Optional)</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Preview Image (Optional)</Label>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input 
                     id="thumbUrl" 
-                    value={thumbFile ? `[Local File: ${thumbFile.name}]` : customThumbUrl} 
-                    onChange={(e) => setCustomThumbUrl(e.target.value)}
-                    placeholder="URL or use button to upload..."
-                    className="flex h-10 flex-1 rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background"
+                    value={thumbFile ? `[Asset Selected: ${thumbFile.name}]` : customThumbUrl} 
+                    onChange={(e) => {
+                      setCustomThumbUrl(e.target.value);
+                      setThumbFile(null);
+                    }}
+                    placeholder="URL or use the upload button..."
+                    className="flex h-11 flex-1 rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background"
                     readOnly={!!thumbFile}
                   />
                   <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={handleThumbChange} />
-                  <Button type="button" variant="outline" onClick={() => thumbInputRef.current?.click()} className="h-10">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => thumbInputRef.current?.click()} 
+                    className="h-11 px-6 border-primary/20 hover:border-primary/50 text-xs font-bold uppercase"
+                  >
                     <Camera className="h-4 w-4 mr-2" /> {thumbFile ? "Change" : "Upload"}
                   </Button>
                 </div>
@@ -250,17 +260,17 @@ export function FileUploadForm() {
             </div>
 
             <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-lg shadow-primary/20" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all" 
               onClick={handleUpload} 
               disabled={isUploading || isOverSize || !file}
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Synchronizing...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Finalizing Synchronization...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Save to Vault
+                  <CheckCircle2 className="mr-2 h-5 w-5" /> Commit to Digital Locker
                 </>
               )}
             </Button>

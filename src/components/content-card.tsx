@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2 } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
@@ -34,6 +34,8 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     other: File,
   }[file.type] || File;
 
+  const isPlaceholder = file.url.includes('placehold.co') || file.url.includes('picsum.photos');
+
   const timeAgo = mounted 
     ? formatDistanceToNow(new Date(file.createdAt)) + ' ago' 
     : 'Recently';
@@ -45,36 +47,27 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     setIsDownloading(true);
     
     try {
-      let downloadUrl = file.url;
-
-      // Robust check for Data URI (Base64)
-      if (downloadUrl.startsWith('data:')) {
-        // Use a more direct method to convert data URI to a blob for download
-        const parts = downloadUrl.split(',');
-        const mime = parts[0].match(/:(.*?);/)?.[1] || file.mimeType;
-        const bstr = atob(parts[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        const blob = new Blob([u8arr], { type: mime });
-        downloadUrl = URL.createObjectURL(blob);
-      }
-
+      // Fetch the data regardless of whether it's a URL or a Data URI
+      const response = await fetch(file.url);
+      const blob = await response.blob();
+      
+      // Create a local blob URL
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create a hidden link and trigger the download
       const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', file.name); // Force download attribute
+      link.href = blobUrl;
+      link.download = file.name.includes('.') ? file.name : `${file.name}.${file.mimeType.split('/')[1] || 'bin'}`;
       document.body.appendChild(link);
       link.click();
+      
+      // Clean up
       document.body.removeChild(link);
-
-      // Clean up temporary object URL if we created one
-      if (downloadUrl.startsWith('blob:')) {
-        setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
-      }
+      URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error("Download execution failed:", error);
+      console.error("Download failed, falling back to direct link:", error);
+      // Fallback: Just try to open it if fetch fails (e.g. CORS issues on placeholders)
+      window.open(file.url, '_blank');
     } finally {
       setIsDownloading(false);
     }
@@ -113,9 +106,16 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
              disabled={isDownloading}
            >
              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-             {isDownloading ? "Extracting..." : "Download"}
+             {isDownloading ? "Processing..." : "Download"}
            </Button>
         </div>
+        {isPlaceholder && (
+          <div className="absolute top-2 right-2 z-10">
+            <Badge variant="destructive" className="text-[8px] font-bold uppercase py-0 px-2 gap-1 bg-amber-500/90 text-white border-none">
+              <AlertTriangle className="h-2 w-2" /> Placeholder
+            </Badge>
+          </div>
+        )}
       </div>
       <CardHeader className="p-4 space-y-1">
         <div className="flex items-center justify-between">
