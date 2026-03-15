@@ -40,6 +40,7 @@ export default function Home() {
 
   const adminName = adminProfile?.displayName || user?.displayName || 'Master Admin';
   const adminPhoto = adminProfile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
+  const adminBio = adminProfile?.bio || 'System Administrator';
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -115,16 +116,16 @@ export default function Home() {
       </main>
 
       {/* Discord-style Admin Profile Bar - Positioned RIGHT */}
-      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pl-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:scale-105 transition-all">
-          <div className="flex flex-col items-end text-right">
+      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[calc(100vw-3rem)] sm:max-w-md">
+        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pl-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/20 transition-all">
+          <div className="flex flex-col items-end text-right overflow-hidden">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3 w-3 text-primary" />
-              <span className="text-sm font-bold tracking-tight">{adminName}</span>
+              <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
+              <span className="text-sm font-bold tracking-tight truncate">{adminName}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">System Admin</span>
+            <span className="text-[10px] text-muted-foreground font-medium line-clamp-1">{adminBio}</span>
           </div>
-          <div className="relative">
+          <div className="relative shrink-0">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
               <AvatarImage src={adminPhoto} />
               <AvatarFallback>AD</AvatarFallback>
