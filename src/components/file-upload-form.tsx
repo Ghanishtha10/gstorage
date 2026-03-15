@@ -95,7 +95,7 @@ export function FileUploadForm() {
     
     try {
       // 1. Upload the main file with progress tracking
-      const fileRef = ref(storage, `uploads/${Date.now()}-${file.name}`);
+      const fileRef = ref(storage, `uploads/${Date.now()}-${file.name.replace(/\s+/g, '_')}`);
       const uploadTask = uploadBytesResumable(fileRef, file);
 
       const fileUrl = await new Promise<string>((resolve, reject) => {
@@ -105,15 +105,20 @@ export function FileUploadForm() {
             const progress = snapshot.totalBytes > 0 
               ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
               : 0;
-            setUploadProgress(progress);
+            // Ensure we show at least 1% if it's started
+            setUploadProgress(Math.max(progress, 1));
           },
           (error) => {
-            console.error("Storage error:", error);
+            console.error("Storage upload error:", error);
             reject(error);
           },
           async () => {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
+            try {
+              const url = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(url);
+            } catch (err) {
+              reject(err);
+            }
           }
         );
       });
@@ -121,10 +126,9 @@ export function FileUploadForm() {
       // 2. Upload thumbnail if provided
       let finalThumb = customThumbUrl;
       if (thumbFile) {
-        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name}`);
-        const thumbUploadTask = uploadBytesResumable(thumbRef, thumbFile);
-        await thumbUploadTask;
-        finalThumb = await getDownloadURL(thumbUploadTask.snapshot.ref);
+        const thumbRef = ref(storage, `thumbnails/${Date.now()}-${thumbFile.name.replace(/\s+/g, '_')}`);
+        await uploadBytesResumable(thumbRef, thumbFile);
+        finalThumb = await getDownloadURL(thumbRef);
       }
 
       // 3. Save metadata to Firestore
@@ -142,15 +146,15 @@ export function FileUploadForm() {
       setUploadProgress(100);
       toast({
         title: "Success",
-        description: "File added to the vault.",
+        description: "File successfully added to the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
-      console.error("Upload error:", error);
+      console.error("Upload process failed:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: error.message || "Could not complete the process.",
+        description: error.message || "Could not complete the transfer. Check permissions.",
       });
     } finally {
       setIsUploading(false);
@@ -162,9 +166,9 @@ export function FileUploadForm() {
       <CardHeader className="bg-muted/10 pb-6 border-b border-border/20">
         <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-sm font-bold">
           <HardDrive className="h-5 w-5" />
-          <span>Asset Upload</span>
+          <span>Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-xs">Select a file to begin the transfer.</CardDescription>
+        <CardDescription className="text-xs">Securely upload files up to 50MB.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
@@ -196,9 +200,9 @@ export function FileUploadForm() {
                 )} />
               </div>
               <h4 className="font-bold text-xl uppercase tracking-tight">
-                {isDragging ? "Release to upload" : "Select or drag asset"}
+                {isDragging ? "Release to Begin" : "Select or Drag Asset"}
               </h4>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports files up to 50MB</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports all standard formats</p>
             </div>
           </div>
         ) : (
@@ -249,7 +253,7 @@ export function FileUploadForm() {
               </div>
 
               <div className="md:col-span-2 space-y-4">
-                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Thumbnail Configuration</Label>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input 
                     id="thumbUrl" 
@@ -259,7 +263,7 @@ export function FileUploadForm() {
                       setThumbFile(null);
                     }}
                     disabled={isUploading}
-                    placeholder="URL or upload an image..."
+                    placeholder="External URL or upload..."
                     className="flex h-12 flex-1 rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm ring-offset-background transition-all"
                     readOnly={!!thumbFile}
                   />
@@ -284,7 +288,7 @@ export function FileUploadForm() {
             >
               {isUploading && (
                 <div 
-                  className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out" 
+                  className="absolute inset-0 bg-primary/30 transition-all duration-300 ease-out" 
                   style={{ width: `${uploadProgress}%` }}
                 />
               )}

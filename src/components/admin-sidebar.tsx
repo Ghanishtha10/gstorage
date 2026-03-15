@@ -39,9 +39,9 @@ export function AdminSidebar() {
         <ThemeToggle />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-4">Navigation</p>
-        <nav className="space-y-2">
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-4">Operations</p>
+        <nav className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -71,15 +71,15 @@ export function AdminSidebar() {
            </Avatar>
            <div className="flex flex-col overflow-hidden">
              <span className="text-sm font-semibold truncate">{user?.displayName || 'Admin User'}</span>
-             <span className="text-[10px] text-muted-foreground truncate">{user?.email?.split('@')[0] || 'admin'}</span>
+             <span className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">{user?.email?.split('@')[0] || 'admin'}</span>
            </div>
         </div>
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive h-11 rounded-xl font-bold"
+          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive h-11 rounded-xl font-bold uppercase tracking-widest text-[10px]"
           onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4" /> Logout
+          <LogOut className="h-4 w-4" /> Initialize Logout
         </Button>
       </div>
     </aside>
