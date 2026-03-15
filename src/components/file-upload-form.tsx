@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useFirestore, useFirebase } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive, AlertTriangle } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit for cloud storage prototype
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -42,7 +42,7 @@ export function FileUploadForm() {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "For this prototype, files must be under 50MB.",
+          description: "Files must be under 50MB.",
         });
         setFile(null);
       }
@@ -119,7 +119,7 @@ export function FileUploadForm() {
 
       toast({
         title: "Success",
-        description: "File securely uploaded to cloud storage.",
+        description: "File uploaded successfully.",
       });
       router.push('/admin');
     } catch (error: any) {
@@ -127,7 +127,7 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: error.message || "Could not complete the cloud upload.",
+        description: error.message || "Could not complete the upload.",
       });
     } finally {
       setIsUploading(false);
@@ -139,9 +139,9 @@ export function FileUploadForm() {
       <CardHeader className="bg-muted/30 pb-6">
         <CardTitle className="flex items-center gap-2 text-primary">
           <HardDrive className="h-5 w-5" />
-          <span>Secure Asset Intake</span>
+          <span>Asset Upload</span>
         </CardTitle>
-        <CardDescription>Uploads are now supported via Cloud Storage (Max 50MB).</CardDescription>
+        <CardDescription>Select a file to add to your secure library.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
@@ -257,11 +257,11 @@ export function FileUploadForm() {
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Transferring to Cloud...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Uploading...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-5 w-5" /> Finalize Cloud Upload
+                  <CheckCircle2 className="mr-2 h-5 w-5" /> Upload
                 </>
               )}
             </Button>
