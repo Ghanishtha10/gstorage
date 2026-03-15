@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserCircle, Save, ShieldCheck } from 'lucide-react';
+import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function AdminProfilePage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const profileRef = useMemoFirebase(() => {
     if (!db) return null;
@@ -26,6 +26,7 @@ export default function AdminProfilePage() {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [photoURL, setPhotoURL] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -36,16 +37,30 @@ export default function AdminProfilePage() {
     }
   }, [profile]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setPhotoFile(selected);
+      setPhotoURL(URL.createObjectURL(selected));
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db) return;
 
     setIsSaving(true);
     try {
+      // In this prototype, if a file was selected, we simulate the upload by using a seeded picsum URL
+      // This keeps the UI consistent with the "simulated storage" feel of the rest of the app.
+      const finalPhotoURL = photoFile 
+        ? `https://picsum.photos/seed/${Math.random()}/200/200` 
+        : photoURL;
+
       await setDoc(doc(db, 'public_profiles', 'admin'), {
         displayName,
         bio,
-        photoURL,
+        photoURL: finalPhotoURL,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -53,6 +68,7 @@ export default function AdminProfilePage() {
         title: "Profile Updated",
         description: "Your public identity has been synchronized.",
       });
+      setPhotoFile(null);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -90,13 +106,21 @@ export default function AdminProfilePage() {
             <CardTitle className="text-sm font-bold uppercase tracking-widest">Preview</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-2xl">
-              <AvatarImage src={photoURL || `https://picsum.photos/seed/admin/200/200`} />
-              <AvatarFallback><UserCircle className="h-20 w-20" /></AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-2xl transition-transform duration-500 group-hover:scale-105">
+                <AvatarImage src={photoURL || `https://picsum.photos/seed/admin/200/200`} />
+                <AvatarFallback><UserCircle className="h-20 w-20" /></AvatarFallback>
+              </Avatar>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Camera className="h-8 w-8" />
+              </button>
+            </div>
             <div className="text-center space-y-1">
               <p className="font-bold text-lg">{displayName || 'Master Admin'}</p>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{bio || 'System Administrator'}</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider line-clamp-2 max-w-[150px]">{bio || 'System Administrator'}</p>
             </div>
           </CardContent>
         </Card>
@@ -115,7 +139,7 @@ export default function AdminProfilePage() {
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Satoshi Nakamoto"
-                  className="bg-muted/30 border-border/40"
+                  className="bg-muted/30 border-border/40 h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -125,20 +149,60 @@ export default function AdminProfilePage() {
                   value={bio} 
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="e.g. Lead Developer & Architect"
-                  className="bg-muted/30 border-border/40"
+                  className="bg-muted/30 border-border/40 h-11"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="photoURL" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avatar URL</Label>
-                <Input 
-                  id="photoURL" 
-                  value={photoURL} 
-                  onChange={(e) => setPhotoURL(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="bg-muted/30 border-border/40"
-                />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avatar Configuration</Label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex gap-2">
+                    <Input 
+                      id="photoURL" 
+                      value={photoURL} 
+                      onChange={(e) => {
+                        setPhotoURL(e.target.value);
+                        setPhotoFile(null);
+                      }}
+                      placeholder="Paste image URL here..."
+                      className="bg-muted/30 border-border/40 flex-1 h-11"
+                    />
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="shrink-0 h-11 border-primary/20 hover:border-primary/50 gap-2"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4" />
+                      Upload
+                    </Button>
+                  </div>
+                  {photoFile && (
+                    <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-lg border border-primary/20 animate-in fade-in zoom-in-95 duration-300">
+                      <ShieldCheck className="h-3 w-3 text-primary" />
+                      <span className="text-[10px] font-bold text-primary truncate flex-1">{photoFile.name}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 text-destructive"
+                        onClick={() => {
+                          setPhotoFile(null);
+                          setPhotoURL(profile?.photoURL || '');
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <Button type="submit" className="w-full gap-2 font-bold uppercase tracking-widest text-xs h-12 shadow-lg shadow-primary/20" disabled={isSaving}>
+              <Button type="submit" className="w-full gap-2 font-bold uppercase tracking-widest text-xs h-12 shadow-lg shadow-primary/20 mt-4" disabled={isSaving}>
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {isSaving ? "Saving Identity..." : "Commit Profile Updates"}
               </Button>
