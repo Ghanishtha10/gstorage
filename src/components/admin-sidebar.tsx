@@ -13,8 +13,8 @@ import { signOut } from 'firebase/auth';
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
   { label: 'Upload', icon: Upload, href: '/admin/upload' },
-  { label: 'Security', icon: ShieldCheck, href: '/admin/security' },
   { label: 'Profile Settings', icon: UserCircle, href: '/admin/profile' },
+  { label: 'Security', icon: ShieldCheck, href: '/admin/security' },
   { label: 'Files Gallery', icon: Home, href: '/' },
 ];
 
