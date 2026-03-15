@@ -1,11 +1,10 @@
-
 "use client";
 
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, LogOut } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, LogOut, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -54,6 +53,11 @@ export default function Home() {
             <span className="font-headline font-bold text-xl tracking-tight">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-colors" title="Customize Theme">
+              <Link href="/themes">
+                <Palette className="h-4 w-4" />
+              </Link>
+            </Button>
             <ThemeToggle />
             {!isAuthLoading && (
               user ? (
@@ -115,22 +119,22 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar - Positioned RIGHT */}
-      <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[calc(100vw-3rem)] sm:max-w-md">
-        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pl-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/20 transition-all">
-          <div className="flex flex-col items-end text-right overflow-hidden">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
-              <span className="text-sm font-bold tracking-tight truncate">{adminName}</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium line-clamp-1">{adminBio}</span>
-          </div>
+      {/* Discord-style Admin Profile Bar - Positioned LEFT */}
+      <div className="fixed bottom-6 left-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[calc(100vw-3rem)] sm:max-w-md">
+        <div className="bg-card/80 backdrop-blur-md border border-border/40 p-3 pr-6 rounded-2xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/20 transition-all">
           <div className="relative shrink-0">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-inner">
               <AvatarImage src={adminPhoto} />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 border-2 border-card rounded-full" title="Online" />
+          </div>
+          <div className="flex flex-col items-start text-left overflow-hidden">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="h-3 w-3 text-primary shrink-0" />
+              <span className="text-sm font-bold tracking-tight truncate">{adminName}</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-medium line-clamp-1">{adminBio}</span>
           </div>
           {user && (
             <div className="flex items-center gap-1 pl-2 border-l border-border/40">

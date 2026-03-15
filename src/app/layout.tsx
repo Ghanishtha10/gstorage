@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { ThemeProviderWrapper } from '@/components/theme-provider-wrapper';
 
 export const metadata: Metadata = {
   title: 'G storage - Secure Digital Repository',
@@ -22,8 +23,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased selection:bg-primary/30">
         <FirebaseClientProvider>
-          {children}
-          <Toaster />
+          <ThemeProviderWrapper>
+            {children}
+            <Toaster />
+          </ThemeProviderWrapper>
         </FirebaseClientProvider>
       </body>
     </html>
