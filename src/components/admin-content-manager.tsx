@@ -3,10 +3,10 @@
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
 import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
-import { useFirestore } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
-import { fileToBase64 } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ interface AdminContentManagerProps {
 }
 
 export function AdminContentManager({ initialFiles }: AdminContentManagerProps) {
-  const db = useFirestore();
+  const { firestore: db, storage } = useFirebase();
   const { toast } = useToast();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [fileToEdit, setFileToEdit] = useState<ContentFile | null>(null);
@@ -56,7 +56,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       await deleteDoc(doc(db, 'files', fileToDelete));
       toast({
         title: "File Deleted",
-        description: "The item has been permanently removed from Firestore.",
+        description: "The item has been permanently removed from the repository.",
       });
       setFileToDelete(null);
     } catch (error) {
@@ -86,12 +86,15 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   };
 
   const handleUpdate = async () => {
-    if (!db || !fileToEdit) return;
+    if (!db || !fileToEdit || !storage) return;
     setIsUpdating(true);
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        finalThumb = await fileToBase64(editThumbFile);
+        const thumbId = `thumb_${Date.now()}_${editThumbFile.name}`;
+        const thumbRef = ref(storage, `thumbnails/${thumbId}`);
+        const thumbUploadResult = await uploadBytes(thumbRef, editThumbFile);
+        finalThumb = await getDownloadURL(thumbUploadResult.ref);
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
@@ -101,7 +104,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       });
       toast({
         title: "File Updated",
-        description: "Metadata changes have been synchronized.",
+        description: "Metadata changes have been synchronized globally.",
       });
       setFileToEdit(null);
     } catch (error) {
@@ -149,7 +152,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this file?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action is permanent and will remove the file's metadata from G storage. You cannot undo this.
+              This action is permanent and will remove the file's metadata from G storage. The physical file remains in cloud storage for backup.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -175,7 +178,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <DialogHeader>
             <DialogTitle>Edit File Metadata</DialogTitle>
             <DialogDescription>
-              Modify how this file appears in the vault.
+              Modify how this asset appears in the digital vault.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -185,7 +188,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                 id="edit-name" 
                 value={editName} 
                 onChange={(e) => setEditName(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
             <div className="space-y-2">
@@ -195,7 +198,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                 value={editType} 
                 onChange={(e) => setEditType(e.target.value)}
                 placeholder="e.g. PDF, Image, Archive..."
-                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
             <div className="space-y-4">
@@ -203,13 +206,13 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               <div className="space-y-2">
                 <input 
                   id="edit-thumb" 
-                  value={editThumbFile ? `[File Selected: ${editThumbFile.name}]` : editThumb} 
+                  value={editThumbFile ? `[Asset Selected: ${editThumbFile.name}]` : editThumb} 
                   onChange={(e) => {
                     setEditThumb(e.target.value);
                     setEditThumbFile(null);
                   }}
                   placeholder="https://..."
-                  className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background"
                   readOnly={!!editThumbFile}
                 />
                 <div className="flex items-center gap-2">
