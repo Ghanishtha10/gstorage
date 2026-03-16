@@ -54,30 +54,23 @@ export function FileUploadForm() {
     if (selected) setFile(selected);
   };
 
-  const handleThumbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) setThumbFile(selected);
-  };
-
   const handleUpload = async () => {
     if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(10); // Start progress
+    setUploadProgress(10);
     
     try {
-      // Convert main file to Base64
+      setUploadProgress(30);
       const fileDataUri = await fileToBase64(file);
-      setUploadProgress(60);
+      setUploadProgress(70);
 
-      // Convert thumbnail if provided
       let finalThumb = customThumbUrl;
       if (thumbFile) {
         finalThumb = await fileToBase64(thumbFile);
       }
-      setUploadProgress(80);
+      setUploadProgress(90);
 
-      // Save metadata and content to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: fileDataUri,
@@ -202,7 +195,7 @@ export function FileUploadForm() {
                 {isUploading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Uploading... {Math.round(uploadProgress)}%</span>
+                    <span>Uploading . .. ...</span>
                   </>
                 ) : (
                   <>
