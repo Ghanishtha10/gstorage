@@ -15,7 +15,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        // Verification logic for session or user
+        // Verification logic for session or user could go here
         return {
           allowedContentTypes: [
             'image/jpeg', 
@@ -30,18 +30,19 @@ export async function POST(request: Request): Promise<NextResponse> {
             'application/zip'
           ],
           tokenPayload: JSON.stringify({
-            // Optional data
+            // Optional data can be passed here
           }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // Metadata storage handled on client in this prototype
+        // Metadata storage is primarily handled on client in this prototype
         console.log('Blob upload completed:', blob.url);
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    console.error('Upload API Error:', error);
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 400 }
