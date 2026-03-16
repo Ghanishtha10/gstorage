@@ -193,9 +193,9 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && !isDeleting && setFileToDelete(null)}>
         <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold">Initiate Purge Protocol?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl font-bold">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="font-medium">
-              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from both the database and Vercel cloud storage. This action is irreversible. Conform Delete : this wont can be recovered
+              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from storage . This action is irreversible
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
@@ -205,7 +205,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold uppercase tracking-widest text-[10px] h-11"
             >
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Confirm Purge"}
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Conform Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
