@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -6,13 +7,12 @@ import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, Camera, HardDrive } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { cn, fileToBase64 } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
-
-const MAX_FILE_SIZE = 700 * 1024; // 700KB limit for Firestore strings
+import { upload } from '@vercel/blob/client';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -22,7 +22,6 @@ export function FileUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [fileType, setFileType] = useState<FileType>('');
-  const [customThumbUrl, setCustomThumbUrl] = useState('');
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const db = useFirestore();
@@ -37,17 +36,8 @@ export function FileUploadForm() {
       else if (file.type.startsWith('audio/')) setFileType('audio');
       else if (file.type === 'application/pdf') setFileType('document');
       else setFileType('other');
-
-      if (file.size > MAX_FILE_SIZE) {
-        toast({
-          variant: "destructive",
-          title: "File Too Large",
-          description: "Maximum file size for this vault is 700KB.",
-        });
-        setFile(null);
-      }
     }
-  }, [file, toast]);
+  }, [file]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -61,25 +51,38 @@ export function FileUploadForm() {
     setUploadProgress(10);
     
     try {
-      setUploadProgress(30);
-      const fileDataUri = await fileToBase64(file);
-      setUploadProgress(70);
-
-      let finalThumb = customThumbUrl;
+      // 1. Upload main file to Vercel Blob
+      setUploadProgress(20);
+      const mainBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        onUploadProgress: (progressEvent) => {
+          setUploadProgress(Math.floor(20 + (progressEvent.percentage * 0.6)));
+        }
+      });
+      
+      let thumbnailUrl = null;
       if (thumbFile) {
-        finalThumb = await fileToBase64(thumbFile);
+        setUploadProgress(85);
+        const thumbBlob = await upload(`thumb_${thumbFile.name}`, thumbFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        thumbnailUrl = thumbBlob.url;
       }
-      setUploadProgress(90);
 
+      setUploadProgress(95);
+
+      // 2. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: fileDataUri,
-        thumbnailUrl: finalThumb || null,
+        url: mainBlob.url,
+        thumbnailUrl: thumbnailUrl,
         type: fileType || 'other',
         mimeType: file.type,
         size: file.size,
         tags: ['General'],
-        createdAt: new Date().toISOString(),
+        uploadedAt: new Date().toISOString(),
       });
 
       setUploadProgress(100);
@@ -93,10 +96,11 @@ export function FileUploadForm() {
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: "An error occurred during the secure transfer.",
+        description: error.message || "An error occurred during the secure transfer.",
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -107,7 +111,7 @@ export function FileUploadForm() {
           <HardDrive className="h-5 w-5" />
           <span>Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-xs">Securely process files up to 700KB.</CardDescription>
+        <CardDescription className="text-xs">Processing via Vercel Blob storage.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
@@ -129,7 +133,7 @@ export function FileUploadForm() {
                 <Upload className={cn("h-10 w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
               </div>
               <h4 className="font-bold text-xl uppercase tracking-tight">Select or Drag Asset</h4>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Optimized for small files</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Powered by Vercel Blob</p>
             </div>
           </div>
         ) : (
@@ -199,7 +203,7 @@ export function FileUploadForm() {
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-5 w-5" />
+                    <Upload className="h-5 w-5" />
                     <span>Upload</span>
                   </>
                 )}

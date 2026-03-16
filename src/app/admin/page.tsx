@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -5,7 +6,7 @@ import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, HardDrive, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import Link from 'link';
 import { AdminContentManager } from '@/components/admin-content-manager';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,7 +16,7 @@ export default function AdminDashboard() {
 
   const filesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'files'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'files'), orderBy('uploadedAt', 'desc'));
   }, [db]);
 
   const { data: files, isLoading } = useCollection(filesQuery);
@@ -27,23 +28,6 @@ export default function AdminDashboard() {
     { label: 'Total Files', value: files?.length || 0, icon: FileText, color: 'text-primary' },
     { label: 'Storage Used', value: `${totalSizeMB} MB`, icon: HardDrive, color: 'text-secondary' },
   ];
-
-  const handleDelete = async (id: string) => {
-    if (!db) return;
-    try {
-      await deleteDoc(doc(db, 'files', id));
-      toast({
-        title: "File Deleted",
-        description: "The item has been permanently removed.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Delete Failed",
-        description: "Could not remove the file from Firestore.",
-      });
-    }
-  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">

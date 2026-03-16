@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -36,8 +37,8 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
 
   const isPlaceholder = file.url.includes('placehold.co') || file.url.includes('picsum.photos');
 
-  const timeAgo = mounted 
-    ? formatDistanceToNow(new Date(file.createdAt)) + ' ago' 
+  const timeAgo = mounted && file.uploadedAt
+    ? formatDistanceToNow(new Date(file.uploadedAt)) + ' ago' 
     : 'Recently';
 
   const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
@@ -47,7 +48,6 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     setIsDownloading(true);
     
     try {
-      // Create a Blob from the file data (works for both external URLs and Base64 Data URIs)
       const response = await fetch(file.url);
       const blob = await response.blob();
       
@@ -55,7 +55,6 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
       const link = document.createElement('a');
       link.href = blobUrl;
       
-      // Attempt to preserve file extension
       const extension = file.mimeType?.split('/')[1] || 'bin';
       const downloadName = file.name.includes('.') ? file.name : `${file.name}.${extension}`;
       
@@ -67,7 +66,6 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Download failed:", error);
-      // Fallback
       window.open(file.url, '_blank');
     } finally {
       setIsDownloading(false);

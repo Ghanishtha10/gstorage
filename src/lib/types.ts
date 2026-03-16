@@ -1,3 +1,4 @@
+
 export type FileType = string;
 
 export interface ContentFile {
@@ -9,7 +10,7 @@ export interface ContentFile {
   mimeType: string;
   size: number;
   tags: string[];
-  createdAt: string;
+  uploadedAt: string;
 }
 
 export interface AdminUser {

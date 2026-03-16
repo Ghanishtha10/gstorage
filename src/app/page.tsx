@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, LogOut, Palette } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,12 +20,11 @@ export default function Home() {
   
   const filesQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'files'), orderBy('createdAt', 'desc'));
+    return query(collection(db, 'files'), orderBy('uploadedAt', 'desc'));
   }, [db]);
 
   const { data: files, isLoading } = useCollection(filesQuery);
 
-  // Fetch admin profile for the Discord-style bar
   const adminProfileRef = useMemoFirebase(() => {
     if (!db) return null;
     return doc(db, 'public_profiles', 'admin');
@@ -43,7 +43,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
-      {/* Header */}
       <header className="border-b border-border/40 bg-card/50 backdrop-blur sticky top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
@@ -117,7 +116,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Discord-style Admin Profile Bar */}
       <div className="fixed bottom-6 right-6 z-40 animate-in fade-in slide-in-from-right-12 slide-in-from-bottom-12 zoom-in-95 duration-1000 ease-out max-w-[calc(100vw-3rem)] sm:max-w-md">
         <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-2 pr-4 rounded-xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
           <div className="relative shrink-0">
@@ -139,15 +137,6 @@ export default function Home() {
               <Link href="/admin" className="p-2 bg-primary/10 rounded-lg text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" title="Admin Dashboard">
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive hover:bg-destructive/10 sm:hidden" 
-                onClick={handleLogout}
-                title="Logout"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
             </div>
           )}
         </div>
