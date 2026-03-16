@@ -40,13 +40,6 @@ export function FileUploadForm() {
     }
   }, [file]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-    }
-  };
-
   /**
    * Performs a client-side direct upload to Vercel Blob.
    * This handles large files by bypassing the Next.js API route body limits.
@@ -265,7 +258,7 @@ export function FileUploadForm() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span>Initiate Purge Protocol</span>
+                      <span>Upload</span>
                     </>
                   )}
                 </div>
