@@ -1,18 +1,15 @@
-
 "use client";
 
 import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, HardDrive, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'link';
+import Link from 'next/link';
 import { AdminContentManager } from '@/components/admin-content-manager';
-import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
   const db = useFirestore();
-  const { toast } = useToast();
 
   const filesQuery = useMemoFirebase(() => {
     if (!db) return null;
