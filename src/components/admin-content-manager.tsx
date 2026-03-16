@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ContentFile } from '@/lib/types';
@@ -27,7 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState, useRef } from 'react';
-import { fileToBase64 } from '@/lib/utils';
+import { upload } from '@vercel/blob/client';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
@@ -84,7 +85,12 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        finalThumb = await fileToBase64(editThumbFile);
+        // Upload to Vercel Blob instead of Base64
+        const blob = await upload(`thumb_edit_${Date.now()}_${editThumbFile.name}`, editThumbFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        finalThumb = blob.url;
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
@@ -101,7 +107,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not sync changes to the database.",
+        description: "Could not sync changes to Vercel Blob/Firestore.",
       });
     } finally {
       setIsUpdating(false);

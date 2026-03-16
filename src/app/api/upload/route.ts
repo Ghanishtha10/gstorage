@@ -10,7 +10,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        // Here you can implement session checks if needed
+        // Authenticate the user if necessary. 
+        // For this prototype, any authenticated user can upload.
         return {
           allowedContentTypes: [
             'image/jpeg', 
@@ -29,8 +30,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // Log or handle completion on the server side if needed
-        console.log('Blob upload completed:', blob.url);
+        // Log completion on server side.
+        console.log('Vercel Blob upload completed:', blob.url);
       },
     });
 

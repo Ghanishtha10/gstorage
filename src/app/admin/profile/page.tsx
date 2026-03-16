@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { fileToBase64 } from '@/lib/utils';
+import { upload } from '@vercel/blob/client';
 
 export default function AdminProfilePage() {
   const db = useFirestore();
@@ -42,7 +43,6 @@ export default function AdminProfilePage() {
     const selected = e.target.files?.[0];
     if (selected) {
       setPhotoFile(selected);
-      // We don't set photoURL here yet, we'll convert it on save
     }
   };
 
@@ -55,8 +55,12 @@ export default function AdminProfilePage() {
       let finalPhotoURL = photoURL;
       
       if (photoFile) {
-        // Convert to Base64 if a file was uploaded
-        finalPhotoURL = await fileToBase64(photoFile);
+        // Upload to Vercel Blob instead of Base64
+        const blob = await upload(`avatar_${Date.now()}_${photoFile.name}`, photoFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        finalPhotoURL = blob.url;
       }
 
       await setDoc(doc(db, 'public_profiles', 'admin'), {
@@ -76,7 +80,7 @@ export default function AdminProfilePage() {
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not save profile changes to Firestore.",
+        description: "Could not save profile changes to Vercel Blob/Firestore.",
       });
     } finally {
       setIsSaving(false);

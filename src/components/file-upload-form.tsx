@@ -48,22 +48,22 @@ export function FileUploadForm() {
     if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(5);
     
     try {
       // 1. Upload main file to Vercel Blob
-      setUploadProgress(20);
       const mainBlob = await upload(file.name, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
         onUploadProgress: (progressEvent) => {
-          setUploadProgress(Math.floor(20 + (progressEvent.percentage * 0.6)));
+          // Map 0-100% to 5-85% of total progress bar
+          setUploadProgress(Math.floor(5 + (progressEvent.percentage * 0.8)));
         }
       });
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        setUploadProgress(85);
+        setUploadProgress(90);
         const thumbBlob = await upload(`thumb_${thumbFile.name}`, thumbFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
@@ -181,6 +181,24 @@ export function FileUploadForm() {
                   placeholder="e.g. PDF, PNG..."
                   className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Custom Thumbnail (Optional)</Label>
+              <div className="flex gap-2">
+                <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) setThumbFile(f); }} />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full h-12 rounded-xl border-dashed border-primary/30 hover:border-primary/60 transition-all bg-muted/5 gap-2" 
+                  onClick={() => thumbInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {thumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <ImageIcon className="h-4 w-4" />}
+                  {thumbFile ? thumbFile.name : "Select Thumbnail"}
+                </Button>
+                {thumbFile && <Button variant="ghost" size="icon" className="h-12 w-12 text-destructive" onClick={() => setThumbFile(null)} disabled={isUploading}><X className="h-5 w-5" /></Button>}
               </div>
             </div>
 
