@@ -7,11 +7,12 @@ import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
+import { suggestContentTags } from '@/ai/flows/suggest-content-tags-flow';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -37,6 +38,13 @@ export function FileUploadForm() {
       else setFileType('other');
     }
   }, [file]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setFile(selected);
+    }
+  };
 
   const uploadToBlob = async (targetFile: File): Promise<string> => {
     const formData = new FormData();
@@ -69,19 +77,38 @@ export function FileUploadForm() {
     setUploadProgress(10);
     
     try {
-      // 1. Upload main file to Vercel Blob via our API
+      // 1. Upload main file to Vercel Blob
       const mainUrl = await uploadToBlob(file);
-      setUploadProgress(60);
+      setUploadProgress(50);
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        setUploadProgress(70);
+        setUploadProgress(60);
         thumbnailUrl = await uploadToBlob(thumbFile);
+      }
+
+      setUploadProgress(70);
+
+      // 2. AI Tag Suggestions
+      let suggestedTags = ['General'];
+      try {
+        // For text files, we'd read content. For others, Gemini can often describe via URL if accessible,
+        // or we just skip if too complex for this step.
+        const aiResponse = await suggestContentTags({
+          content: mainUrl,
+          mimeType: file.type,
+          fileName: file.name
+        });
+        if (aiResponse?.tags && aiResponse.tags.length > 0) {
+          suggestedTags = aiResponse.tags;
+        }
+      } catch (aiError) {
+        console.warn("AI tagging failed:", aiError);
       }
 
       setUploadProgress(90);
 
-      // 2. Save metadata to Firestore
+      // 3. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -89,14 +116,14 @@ export function FileUploadForm() {
         type: fileType || 'other',
         mimeType: file.type,
         size: file.size,
-        tags: ['General'],
+        tags: suggestedTags,
         uploadedAt: new Date().toISOString(),
       });
 
       setUploadProgress(100);
       toast({
         title: "Transfer Complete",
-        description: "File successfully added to the vault.",
+        description: "File successfully added with AI-suggested tags.",
       });
       router.push('/admin');
     } catch (error: any) {
@@ -225,7 +252,10 @@ export function FileUploadForm() {
                 {isUploading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Uploading . .. ...</span>
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
+                      Uploading . .. ...
+                    </span>
                   </>
                 ) : (
                   <>
