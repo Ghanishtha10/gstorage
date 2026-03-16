@@ -1,8 +1,9 @@
+
 "use client";
 
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, Camera, CheckCircle2, X, Download, ShieldCheck } from 'lucide-react';
+import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -257,7 +258,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                   {editThumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <Camera className="h-4 w-4" />}
                   {editThumbFile ? "New Reference Set" : "Update Visual Reference"}
                 </Button>
-                {editThumbFile && <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive" onClick={() => setThumbFile(null)}><X className="h-5 w-5" /></Button>}
+                {editThumbFile && <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive" onClick={() => setEditThumbFile(null)}><X className="h-5 w-5" /></Button>}
               </div>
             </div>
           </div>
