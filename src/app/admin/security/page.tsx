@@ -150,6 +150,7 @@ export default function SecurityPage() {
                   <input 
                     type="email" 
                     value={email} 
+                    placeholder="Enter current or new admin email..."
                     onChange={(e) => setEmail(e.target.value)}
                     className="flex h-12 w-full rounded-xl border border-input bg-muted/30 pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
@@ -161,13 +162,13 @@ export default function SecurityPage() {
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input 
                     type="password" 
-                    placeholder="Enter new password..."
+                    placeholder="Update security phrase (leave blank to keep existing)..."
                     value={newPassword} 
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="flex h-12 w-full rounded-xl border border-input bg-muted/30 pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
-                <p className="text-[9px] text-muted-foreground ml-1 italic">Leave blank to keep existing password.</p>
+                <p className="text-[9px] text-muted-foreground ml-1 italic">Existing phrase is currently active and encrypted.</p>
               </div>
               <Button type="submit" disabled={isUpdatingAuth} className="w-full h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
                 {isUpdatingAuth ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
