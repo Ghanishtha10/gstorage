@@ -14,7 +14,7 @@
     --primary-foreground: 189 22% 15%;
     --secondary: 152 60% 50%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 189 10% 90%;
+    --muted: 189 10% 92%;
     --muted-foreground: 189 10% 40%;
     --accent: 152 60% 50%;
     --accent-foreground: 0 0% 100%;
@@ -23,65 +23,130 @@
     --border: 189 20% 85%;
     --input: 189 20% 85%;
     --ring: 195 48% 63%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
-    --background: 189 22% 15%;
+    --background: 189 22% 8%;
     --foreground: 189 10% 95%;
-    --card: 189 22% 18%;
+    --card: 189 22% 10%;
     --card-foreground: 189 10% 95%;
-    --popover: 189 22% 18%;
+    --popover: 189 22% 10%;
     --popover-foreground: 189 10% 95%;
     --primary: 195 48% 63%;
     --primary-foreground: 189 22% 15%;
     --secondary: 152 60% 50%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 189 15% 25%;
+    --muted: 189 15% 15%;
     --muted-foreground: 189 10% 70%;
     --accent: 152 60% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 189 15% 25%;
-    --input: 189 15% 25%;
+    --border: 189 15% 20%;
+    --input: 189 15% 20%;
     --ring: 195 48% 63%;
   }
 
-  /* Accent Color Overrides */
+  /* Accent Color Overrides - Light Mode */
   [data-accent="emerald"] {
-    --primary: 152 60% 50%;
-    --accent: 152 60% 50%;
-    --ring: 152 60% 50%;
+    --primary: 152 60% 45%;
+    --accent: 152 60% 45%;
+    --ring: 152 60% 45%;
+    --background: 152 20% 98%;
+    --muted: 152 15% 94%;
   }
   [data-accent="rose"] {
     --primary: 346 84% 61%;
     --accent: 346 84% 61%;
     --ring: 346 84% 61%;
+    --background: 346 30% 98%;
+    --muted: 346 20% 94%;
   }
   [data-accent="amber"] {
-    --primary: 38 92% 50%;
-    --accent: 38 92% 50%;
-    --ring: 38 92% 50%;
+    --primary: 38 92% 45%;
+    --accent: 38 92% 45%;
+    --ring: 38 92% 45%;
+    --background: 38 40% 98%;
+    --muted: 38 30% 94%;
   }
   [data-accent="violet"] {
     --primary: 262 83% 58%;
     --accent: 262 83% 58%;
     --ring: 262 83% 58%;
+    --background: 262 20% 98%;
+    --muted: 262 15% 94%;
   }
   [data-accent="slate"] {
-    --primary: 215 16% 47%;
-    --accent: 215 16% 47%;
-    --ring: 215 16% 47%;
+    --primary: 215 25% 40%;
+    --accent: 215 25% 40%;
+    --ring: 215 25% 40%;
+    --background: 215 10% 97%;
+    --muted: 215 10% 92%;
   }
   [data-accent="indigo"] {
-    --primary: 239 84% 67%;
-    --accent: 239 84% 67%;
-    --ring: 239 84% 67%;
+    --primary: 239 84% 60%;
+    --accent: 239 84% 60%;
+    --ring: 239 84% 60%;
+    --background: 239 20% 98%;
+    --muted: 239 15% 94%;
   }
   [data-accent="orange"] {
+    --primary: 24 95% 50%;
+    --accent: 24 95% 50%;
+    --ring: 24 95% 50%;
+    --background: 24 30% 98%;
+    --muted: 24 20% 94%;
+  }
+
+  /* Accent Color Overrides - Dark Mode */
+  .dark[data-accent="emerald"] {
+    --background: 152 30% 6%;
+    --card: 152 30% 8%;
+    --muted: 152 20% 12%;
+    --primary: 152 60% 50%;
+    --ring: 152 60% 50%;
+  }
+  .dark[data-accent="rose"] {
+    --background: 346 30% 6%;
+    --card: 346 30% 8%;
+    --muted: 346 20% 12%;
+    --primary: 346 84% 61%;
+    --ring: 346 84% 61%;
+  }
+  .dark[data-accent="amber"] {
+    --background: 38 40% 6%;
+    --card: 38 40% 8%;
+    --muted: 38 30% 12%;
+    --primary: 38 92% 50%;
+    --ring: 38 92% 50%;
+  }
+  .dark[data-accent="violet"] {
+    --background: 262 30% 6%;
+    --card: 262 30% 8%;
+    --muted: 262 20% 12%;
+    --primary: 262 83% 58%;
+    --ring: 262 83% 58%;
+  }
+  .dark[data-accent="slate"] {
+    --background: 215 15% 8%;
+    --card: 215 15% 10%;
+    --muted: 215 10% 15%;
+    --primary: 215 25% 60%;
+    --ring: 215 25% 60%;
+  }
+  .dark[data-accent="indigo"] {
+    --background: 239 30% 6%;
+    --card: 239 30% 8%;
+    --muted: 239 20% 12%;
+    --primary: 239 84% 67%;
+    --ring: 239 84% 67%;
+  }
+  .dark[data-accent="orange"] {
+    --background: 24 40% 6%;
+    --card: 24 40% 8%;
+    --muted: 24 30% 12%;
     --primary: 24 95% 53%;
-    --accent: 24 95% 53%;
     --ring: 24 95% 53%;
   }
 }
