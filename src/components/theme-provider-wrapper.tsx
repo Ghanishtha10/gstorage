@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type AccentColor = "default" | "emerald" | "rose" | "amber" | "violet";
+type AccentColor = "default" | "emerald" | "rose" | "amber" | "violet" | "slate" | "indigo" | "orange";
 
 interface ThemeContextType {
   accent: AccentColor;
