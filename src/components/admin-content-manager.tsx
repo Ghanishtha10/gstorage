@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ContentFile } from '@/lib/types';
@@ -196,7 +195,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold">Initiate Purge Protocol?</AlertDialogTitle>
             <AlertDialogDescription className="font-medium">
-              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from both the database and Vercel cloud storage. This action is irreversible.
+              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from both the database and Vercel cloud storage. This action is irreversible. Conform Delete : this wont can be recovered
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
