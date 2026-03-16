@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -84,7 +85,7 @@ export default function LoginPage() {
                   <Input 
                     id="username" 
                     type="text" 
-                    placeholder="*******" 
+                    placeholder="Enter username..." 
                     className="bg-background/50 pl-11 h-12 border-border/40 focus:ring-primary/20 transition-all rounded-xl"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}

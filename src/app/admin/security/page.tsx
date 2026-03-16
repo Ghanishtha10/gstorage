@@ -31,7 +31,7 @@ export default function SecurityPage() {
   const { toast } = useToast();
   const { setAccent } = useThemeAccent();
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingAuth, setIsUpdatingAuth] = useState(false);
   const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
@@ -44,7 +44,10 @@ export default function SecurityPage() {
   const { data: config } = useDoc(configRef);
 
   useEffect(() => {
-    if (user?.email) setEmail(user.email);
+    if (user?.email) {
+      // Remove @gstorage.com suffix if present for display
+      setUsername(user.email.replace('@gstorage.com', ''));
+    }
   }, [user]);
 
   const handleUpdateAuth = async (e: React.FormEvent) => {
@@ -53,8 +56,10 @@ export default function SecurityPage() {
     
     setIsUpdatingAuth(true);
     try {
-      if (email !== user?.email) {
-        await updateEmail(auth.currentUser, email);
+      const finalEmail = username.includes('@') ? username : `${username}@gstorage.com`;
+      
+      if (finalEmail !== user?.email) {
+        await updateEmail(auth.currentUser, finalEmail);
       }
       if (newPassword) {
         await updatePassword(auth.currentUser, newPassword);
@@ -105,7 +110,7 @@ export default function SecurityPage() {
   const securityStats = [
     { label: 'Access Logs', value: 'Active Monitoring', icon: Eye, color: 'text-blue-500' },
     { label: 'Encryption', value: 'AES-256 Enabled', icon: Lock, color: 'text-green-500' },
-    { label: 'Admin Identity', value: user?.email || 'N/A', icon: Key, color: 'text-amber-500' },
+    { label: 'Admin Identity', value: username || 'N/A', icon: Key, color: 'text-amber-500' },
   ];
 
   return (
@@ -144,14 +149,14 @@ export default function SecurityPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleUpdateAuth} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Admin Username (Email)</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Admin Username</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input 
-                    type="email" 
-                    value={email} 
-                    placeholder="Enter current or new admin email..."
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text" 
+                    value={username} 
+                    placeholder="Enter current or new admin username..."
+                    onChange={(e) => setUsername(e.target.value)}
                     className="flex h-12 w-full rounded-xl border border-input bg-muted/30 pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
