@@ -257,7 +257,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                   {editThumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <Camera className="h-4 w-4" />}
                   {editThumbFile ? "New Reference Set" : "Update Visual Reference"}
                 </Button>
-                {editThumbFile && <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive" onClick={() => setEditThumbFile(null)}><X className="h-5 w-5" /></Button>}
+                {editThumbFile && <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive" onClick={() => setThumbFile(null)}><X className="h-5 w-5" /></Button>}
               </div>
             </div>
           </div>

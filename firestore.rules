@@ -28,30 +28,37 @@ service cloud.firestore {
 
     // --- Collection Rules ---
 
+    // Publicly readable files, admin-only writes
     match /files/{fileId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Publicly readable tags, admin-only writes
     match /tags/{tagId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // User-specific application settings
     match /users/{userId}/appConfigurations/{configId} {
       allow read, write: if isOwner(userId);
     }
 
+    // Global configurations (e.g., default theme) - Public Read, Admin Write
+    // Updated to be explicitly public to resolve permission errors during initial load
     match /global_configs/{configId} {
-      allow read: if true;
+      allow get, list, read: if true;
       allow write: if isAdmin();
     }
 
+    // Public profile data
     match /public_profiles/{profileId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Admin role verification
     match /roles_admin/{adminId} {
       allow read: if isSignedIn();
       allow write: if false; 
