@@ -21,6 +21,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Upload the file to Vercel Blob
+    // 'public' access is required for the file to be accessible via URL
     const blob = await put(file.name, file, {
       access: 'public',
       contentType: file.type,

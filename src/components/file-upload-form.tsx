@@ -38,11 +38,6 @@ export function FileUploadForm() {
     }
   }, [file]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) setFile(selected);
-  };
-
   const uploadToBlob = async (targetFile: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', targetFile);
@@ -74,7 +69,7 @@ export function FileUploadForm() {
     setUploadProgress(10);
     
     try {
-      // 1. Upload main file to Vercel Blob
+      // 1. Upload main file to Vercel Blob via our API
       const mainUrl = await uploadToBlob(file);
       setUploadProgress(60);
       
