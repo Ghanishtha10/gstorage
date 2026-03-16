@@ -1,45 +1,29 @@
 
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        // Authenticate the user if necessary. 
-        // For this prototype, any authenticated user can upload.
-        return {
-          allowedContentTypes: [
-            'image/jpeg', 
-            'image/png', 
-            'image/gif', 
-            'image/webp',
-            'application/pdf', 
-            'video/mp4', 
-            'audio/mpeg',
-            'text/plain',
-            'application/zip'
-          ],
-          tokenPayload: JSON.stringify({
-            // optional payload sent to onUploadCompleted
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // Log completion on server side.
-        console.log('Vercel Blob upload completed:', blob.url);
-      },
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    // Upload the file to Vercel Blob
+    // The BLOB_READ_WRITE_TOKEN environment variable is automatically used by the 'put' function
+    const blob = await put(file.name, file, {
+      access: 'public',
+      contentType: file.type,
     });
 
-    return NextResponse.json(jsonResponse);
+    return NextResponse.json(blob);
   } catch (error) {
+    console.error('Upload API error:', error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 400 },
+      { status: 500 }
     );
   }
 }

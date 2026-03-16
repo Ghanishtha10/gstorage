@@ -6,12 +6,10 @@ import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { upload } from '@vercel/blob/client';
 
 export default function AdminProfilePage() {
   const db = useFirestore();
@@ -46,6 +44,24 @@ export default function AdminProfilePage() {
     }
   };
 
+  const uploadToBlob = async (targetFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', targetFile);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    const blob = await response.json();
+    return blob.url;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db) return;
@@ -55,12 +71,7 @@ export default function AdminProfilePage() {
       let finalPhotoURL = photoURL;
       
       if (photoFile) {
-        // Upload to Vercel Blob instead of Base64
-        const blob = await upload(`avatar_${Date.now()}_${photoFile.name}`, photoFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        finalPhotoURL = blob.url;
+        finalPhotoURL = await uploadToBlob(photoFile);
       }
 
       await setDoc(doc(db, 'public_profiles', 'admin'), {
@@ -76,11 +87,11 @@ export default function AdminProfilePage() {
       });
       setPhotoFile(null);
       setPhotoURL(finalPhotoURL);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not save profile changes to Vercel Blob/Firestore.",
+        description: error.message || "Could not save profile changes.",
       });
     } finally {
       setIsSaving(false);

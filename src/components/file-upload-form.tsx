@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
-import { upload } from '@vercel/blob/client';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -44,39 +43,47 @@ export function FileUploadForm() {
     if (selected) setFile(selected);
   };
 
+  const uploadToBlob = async (targetFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', targetFile);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    const blob = await response.json();
+    return blob.url;
+  };
+
   const handleUpload = async () => {
     if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(5);
+    setUploadProgress(10);
     
     try {
-      // 1. Upload main file to Vercel Blob
-      const mainBlob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
-        onUploadProgress: (progressEvent) => {
-          // Map 0-100% to 5-85% of total progress bar
-          setUploadProgress(Math.floor(5 + (progressEvent.percentage * 0.8)));
-        }
-      });
+      // 1. Upload main file to Vercel Blob via our API
+      const mainUrl = await uploadToBlob(file);
+      setUploadProgress(60);
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        setUploadProgress(90);
-        const thumbBlob = await upload(`thumb_${thumbFile.name}`, thumbFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        thumbnailUrl = thumbBlob.url;
+        setUploadProgress(70);
+        thumbnailUrl = await uploadToBlob(thumbFile);
       }
 
-      setUploadProgress(95);
+      setUploadProgress(90);
 
-      // 2. Save metadata to Firestore
+      // 2. Save ONLY metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
-        url: mainBlob.url,
+        url: mainUrl,
         thumbnailUrl: thumbnailUrl,
         type: fileType || 'other',
         mimeType: file.type,
@@ -111,7 +118,7 @@ export function FileUploadForm() {
           <HardDrive className="h-5 w-5" />
           <span>Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-xs">Processing via Vercel Blob storage.</CardDescription>
+        <CardDescription className="text-xs">Processing via Secure Vercel Blob Tunnel.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-8">
         {!file ? (
@@ -222,7 +229,7 @@ export function FileUploadForm() {
                 ) : (
                   <>
                     <Upload className="h-5 w-5" />
-                    <span>Upload</span>
+                    <span>Upload to Storage</span>
                   </>
                 )}
               </div>

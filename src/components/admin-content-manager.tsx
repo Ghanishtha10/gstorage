@@ -28,7 +28,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState, useRef } from 'react';
-import { upload } from '@vercel/blob/client';
 
 interface AdminContentManagerProps {
   initialFiles: ContentFile[];
@@ -79,18 +78,31 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     setEditThumbFile(null);
   };
 
+  const uploadToBlob = async (targetFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', targetFile);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    const blob = await response.json();
+    return blob.url;
+  };
+
   const handleUpdate = async () => {
     if (!db || !fileToEdit) return;
     setIsUpdating(true);
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        // Upload to Vercel Blob instead of Base64
-        const blob = await upload(`thumb_edit_${Date.now()}_${editThumbFile.name}`, editThumbFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        finalThumb = blob.url;
+        finalThumb = await uploadToBlob(editThumbFile);
       }
 
       await updateDoc(doc(db, 'files', fileToEdit.id), {
@@ -103,11 +115,11 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         description: "Metadata changes have been synchronized globally.",
       });
       setFileToEdit(null);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not sync changes to Vercel Blob/Firestore.",
+        description: error.message || "Could not sync changes to Vercel Blob/Firestore.",
       });
     } finally {
       setIsUpdating(false);
