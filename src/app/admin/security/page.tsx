@@ -21,7 +21,6 @@ export default function SecurityPage() {
 
   useEffect(() => {
     if (user?.email) {
-      // Stripping the domain for display as a "username"
       setUsername(user.email.split('@')[0]);
     }
   }, [user]);
@@ -32,7 +31,6 @@ export default function SecurityPage() {
     
     setIsUpdatingAuth(true);
     try {
-      // Ensure it stays within the internal domain for this prototype
       const finalEmail = username.includes('@') ? username : `${username}@gstorage.com`;
       
       if (finalEmail !== user?.email) {

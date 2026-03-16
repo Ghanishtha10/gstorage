@@ -170,7 +170,7 @@ export function FileUploadForm() {
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border bg-muted/20 border-border/40 shadow-sm">
               <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-inner">
+                <div className="h-10 w-10 sm:h-12 w-12 shrink-0 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-inner">
                   {fileType === 'image' && <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
                   {fileType === 'video' && <Video className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
                   {fileType === 'audio' && <Headphones className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}

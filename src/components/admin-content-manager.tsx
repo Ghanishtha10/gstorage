@@ -189,7 +189,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="font-medium text-muted-foreground">
-              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from storage . This action is irreversible
+              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from storage. This action is irreversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
