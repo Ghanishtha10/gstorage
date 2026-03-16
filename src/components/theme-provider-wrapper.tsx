@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 type AccentColor = "default" | "emerald" | "rose" | "amber" | "violet" | "slate" | "indigo" | "orange";
 
@@ -13,23 +15,42 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
   const [accent, setAccent] = useState<AccentColor>("default");
+  const db = useFirestore();
 
+  // Reference to global settings for theme
+  const globalConfigRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'global_configs', 'settings');
+  }, [db]);
+
+  const { data: config } = useDoc(globalConfigRef);
+
+  // Sync with Global Firestore settings
   useEffect(() => {
-    const savedAccent = localStorage.getItem("gstorage-accent") as AccentColor;
-    if (savedAccent) {
-      setAccent(savedAccent);
-      document.documentElement.setAttribute("data-accent", savedAccent);
+    if (config?.selectedAccentColorId) {
+      const globalAccent = config.selectedAccentColorId as AccentColor;
+      applyAccent(globalAccent);
+    } else {
+      // Fallback to local storage if Firestore isn't set yet
+      const savedAccent = localStorage.getItem("gstorage-accent") as AccentColor;
+      if (savedAccent) {
+        applyAccent(savedAccent);
+      }
     }
-  }, []);
+  }, [config]);
 
-  const handleSetAccent = (newAccent: AccentColor) => {
+  const applyAccent = (newAccent: AccentColor) => {
     setAccent(newAccent);
-    localStorage.setItem("gstorage-accent", newAccent);
     if (newAccent === "default") {
       document.documentElement.removeAttribute("data-accent");
     } else {
       document.documentElement.setAttribute("data-accent", newAccent);
     }
+  };
+
+  const handleSetAccent = (newAccent: AccentColor) => {
+    applyAccent(newAccent);
+    localStorage.setItem("gstorage-accent", newAccent);
   };
 
   return (

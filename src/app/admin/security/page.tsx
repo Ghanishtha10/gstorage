@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -29,23 +28,15 @@ export default function SecurityPage() {
   const auth = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
-  const { setAccent } = useThemeAccent();
+  const { accent, setAccent } = useThemeAccent();
 
   const [username, setUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingAuth, setIsUpdatingAuth] = useState(false);
   const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
 
-  const configRef = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return doc(db, 'users', user.uid, 'appConfigurations', 'settings');
-  }, [db, user]);
-
-  const { data: config } = useDoc(configRef);
-
   useEffect(() => {
     if (user?.email) {
-      // Remove @gstorage.com suffix if present for display
       setUsername(user.email.replace('@gstorage.com', ''));
     }
   }, [user]);
@@ -73,34 +64,33 @@ export default function SecurityPage() {
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: error.message || "Could not update security credentials. Re-authentication may be required.",
+        description: error.message || "Could not update security credentials.",
       });
     } finally {
       setIsUpdatingAuth(false);
     }
   };
 
-  const handleSetDefaultTheme = async (presetId: string) => {
-    if (!db || !user) return;
+  const handleSetGlobalTheme = async (presetId: string) => {
+    if (!db) return;
     setIsUpdatingTheme(true);
     try {
-      await setDoc(doc(db, 'users', user.uid, 'appConfigurations', 'settings'), {
-        id: 'settings',
-        selectedAccentColorHex: presetId,
-        isDarkModeEnabled: true,
+      // Save to global configs so it applies to everyone
+      await setDoc(doc(db, 'global_configs', 'settings'), {
+        selectedAccentColorId: presetId,
         lastUpdatedAt: new Date().toISOString(),
       }, { merge: true });
 
       setAccent(presetId as any);
       toast({
-        title: "Protocol Updated",
-        description: `Default system theme locked to ${presetId}.`,
+        title: "Global Protocol Updated",
+        description: `System-wide theme locked to ${presetId}.`,
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Sync Failed",
-        description: error.message || "Could not save theme configuration.",
+        description: error.message || "Could not save global theme configuration.",
       });
     } finally {
       setIsUpdatingTheme(false);
@@ -150,7 +140,7 @@ export default function SecurityPage() {
             <form onSubmit={handleUpdateAuth} className="space-y-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Admin Username</Label>
-                <div className="relative">
+                <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input 
                     type="text" 
@@ -163,7 +153,7 @@ export default function SecurityPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">New Security Phrase</Label>
-                <div className="relative">
+                <div className="relative group">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input 
                     type="password" 
@@ -186,19 +176,19 @@ export default function SecurityPage() {
         <Card className="bg-card border-border/40 overflow-hidden">
           <CardHeader className="bg-muted/10 border-b border-border/10">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" /> Default System Theme
+              <Palette className="h-5 w-5 text-primary" /> Global System Theme
             </CardTitle>
-            <CardDescription className="text-xs">Set the global visual profile for your admin environment.</CardDescription>
+            <CardDescription className="text-xs">Set the default visual profile displayed to all visitors.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 gap-3">
               {PRESETS.map((preset) => {
-                const isActive = config?.selectedAccentColorHex === preset.id;
+                const isActive = accent === preset.id;
                 return (
                   <button
                     key={preset.id}
                     disabled={isUpdatingTheme}
-                    onClick={() => handleSetDefaultTheme(preset.id)}
+                    onClick={() => handleSetGlobalTheme(preset.id)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-xl border transition-all text-left group",
                       isActive 
@@ -217,10 +207,10 @@ export default function SecurityPage() {
             <div className="mt-6 p-4 rounded-xl border border-border/40 bg-muted/20">
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <h3 className="text-[10px] font-bold uppercase tracking-tight">Sync Status</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-tight">Global Sync Active</h3>
               </div>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Default theme is stored in your secure app configuration. It will persist across all sessions for your account.
+                The selected theme is stored in the public configuration vault. It will be the default experience for all users until reconfigured.
               </p>
             </div>
           </CardContent>
