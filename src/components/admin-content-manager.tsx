@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ContentFile } from '@/lib/types';
@@ -195,7 +194,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold">Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="font-medium">
+            <AlertDialogDescription className="font-medium text-muted-foreground">
               This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from storage . This action is irreversible
             </AlertDialogDescription>
           </AlertDialogHeader>
