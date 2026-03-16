@@ -56,15 +56,12 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     if (!db || !fileToDelete) return;
     setIsDeleting(true);
     try {
-      const blobResponse = await fetch('/api/delete', {
+      // Delete the file from Vercel Blob
+      await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: fileToDelete.url }),
       });
-
-      if (!blobResponse.ok) {
-        console.warn("Blob deletion might have failed or file already gone from storage.");
-      }
 
       if (fileToDelete.thumbnailUrl) {
         await fetch('/api/delete', {
@@ -196,7 +193,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">Abort</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={(e) => { e.preventDefault(); handleDelete(); }} 
               disabled={isDeleting}
