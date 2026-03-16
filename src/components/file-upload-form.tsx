@@ -7,7 +7,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Sparkles } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Sparkles, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -56,9 +56,20 @@ export function FileUploadForm() {
         body: formData,
       });
 
+      const contentType = response.headers.get("content-type");
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+        } else {
+          // Handle HTML error pages (like 413 Payload Too Large or 504 Timeout)
+          if (response.status === 413) throw new Error('File is too large for server-side processing. Please use a smaller file.');
+          throw new Error(`Server returned a non-JSON error (${response.status}). This usually happens for large files or timeouts.`);
+        }
+      }
+
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error('Server returned an unexpected response format. Please try again.');
       }
 
       const blob = await response.json();
@@ -92,8 +103,6 @@ export function FileUploadForm() {
       // 2. AI Tag Suggestions
       let suggestedTags = ['General'];
       try {
-        // For text files, we'd read content. For others, Gemini can often describe via URL if accessible,
-        // or we just skip if too complex for this step.
         const aiResponse = await suggestContentTags({
           content: mainUrl,
           mimeType: file.type,

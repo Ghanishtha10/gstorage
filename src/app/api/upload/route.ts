@@ -2,6 +2,8 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
+export const maxDuration = 60; // Increase timeout for larger files
+
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     // Check if the token exists to provide a better error message
@@ -30,6 +32,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json(blob);
   } catch (error) {
     console.error('Upload API error:', error);
+    
+    // Check for specific payload size errors which might manifest as various error types
+    const errorMessage = (error as Error).message || '';
+    if (errorMessage.includes('body size') || errorMessage.includes('large')) {
+       return NextResponse.json(
+        { error: 'The file is too large to be processed by this server route. Please use a file smaller than 4.5MB.' },
+        { status: 413 }
+      );
+    }
+
     return NextResponse.json(
       { error: (error as Error).message || 'An unexpected error occurred during upload.' },
       { status: 500 }

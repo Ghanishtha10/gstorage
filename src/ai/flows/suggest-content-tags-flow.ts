@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow that analyzes uploaded file content
- * (text, images, or videos) and suggests relevant tags or categories.
+ * (text, images, videos, or audio) and suggests relevant tags or categories.
  *
  * - suggestContentTags - A function that handles the content tagging process.
  * - SuggestContentTagsInput - The input type for the suggestContentTags function.
@@ -15,12 +16,12 @@ const SuggestContentTagsInputSchema = z.object({
   content: z
     .string()
     .describe(
-      'The content of the file. If it is an image or video, it should be a data URI (data:<mimetype>;base64,<encoded_data>). For text files, it is the raw text content.'
+      'The content of the file. This should be a URL to the file or a data URI (data:<mimetype>;base64,<encoded_data>).'
     ),
   mimeType: z
     .string()
     .describe(
-      'The MIME type of the content (e.g., text/plain, image/jpeg, application/pdf, video/mp4).' 
+      'The MIME type of the content (e.g., text/plain, image/jpeg, application/pdf, video/mp4, audio/mpeg).' 
     ),
   fileName: z.string().optional().describe('The original file name.'),
 });
@@ -42,6 +43,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert content categorizer. Your task is to analyze the provided file content and suggest a list of relevant, concise, and descriptive tags or categories. These tags will be used to organize content efficiently.
 
 If the content is an image or video, describe what you see or the main subject, then suggest tags.
+If the content is an audio file (like MP3), analyze the sound, music, or speech (if you can process it) and suggest tags related to the genre, mood, or topic.
 If the content is text, summarize its key themes or topics, then suggest tags.
 
 Provide ONLY a JSON array of strings as your response. Do not include any other text, explanation, or conversational filler.
