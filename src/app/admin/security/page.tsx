@@ -37,7 +37,8 @@ export default function SecurityPage() {
 
   useEffect(() => {
     if (user?.email) {
-      setUsername(user.email.replace('@gstorage.com', ''));
+      // Stripping the domain for display as a "username"
+      setUsername(user.email.split('@')[0]);
     }
   }, [user]);
 
@@ -47,6 +48,7 @@ export default function SecurityPage() {
     
     setIsUpdatingAuth(true);
     try {
+      // Ensure it stays within the internal domain for this prototype
       const finalEmail = username.includes('@') ? username : `${username}@gstorage.com`;
       
       if (finalEmail !== user?.email) {
@@ -75,7 +77,6 @@ export default function SecurityPage() {
     if (!db) return;
     setIsUpdatingTheme(true);
     try {
-      // Save to global configs so it applies to everyone
       await setDoc(doc(db, 'global_configs', 'settings'), {
         selectedAccentColorId: presetId,
         lastUpdatedAt: new Date().toISOString(),
