@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 interface ContentCardProps {
   file: ContentFile;
   isAdmin?: boolean;
-  onDelete?: (id: string) => void;
+  onDelete?: (file: ContentFile) => void;
   onEdit?: (file: ContentFile) => void;
   index?: number;
 }
@@ -43,8 +43,10 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
 
   const previewSrc = file.thumbnailUrl || (file.type === 'image' ? file.url : null);
 
+  const isDownloadable = file.isDownloadable !== false;
+
   const handleDownload = async () => {
-    if (isDownloading) return;
+    if (!isDownloadable || isDownloading) return;
     setIsDownloading(true);
     
     try {
@@ -93,25 +95,42 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
             <Icon className="h-12 w-12 text-muted-foreground/50 transition-transform duration-300 group-hover:scale-110" />
           </div>
         )}
+        
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
-           <Button 
-             size="sm" 
-             variant="secondary" 
-             className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold"
-             onClick={(e) => {
-               e.preventDefault();
-               handleDownload();
-             }}
-             disabled={isDownloading}
-           >
-             {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-             {isDownloading ? "Processing..." : "Download"}
-           </Button>
+           {isDownloadable ? (
+             <Button 
+               size="sm" 
+               variant="secondary" 
+               className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold"
+               onClick={(e) => {
+                 e.preventDefault();
+                 handleDownload();
+               }}
+               disabled={isDownloading}
+             >
+               {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+               {isDownloading ? "Processing..." : "Download"}
+             </Button>
+           ) : (
+             <div className="w-full flex items-center justify-center gap-2 text-white/70 text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+               <Lock className="h-3 w-3" />
+               Access Restricted
+             </div>
+           )}
         </div>
+
         {isPlaceholder && (
           <div className="absolute top-2 right-2 z-10">
             <Badge variant="destructive" className="text-[8px] font-bold uppercase py-0 px-2 gap-1 bg-amber-500/90 text-white border-none">
               <AlertTriangle className="h-2 w-2" /> Placeholder
+            </Badge>
+          </div>
+        )}
+
+        {!isDownloadable && (
+          <div className="absolute top-2 left-2 z-10">
+            <Badge variant="secondary" className="text-[8px] font-bold uppercase py-0 px-2 gap-1 bg-black/60 text-white border-none backdrop-blur-md">
+              <Lock className="h-2 w-2" /> Private
             </Badge>
           </div>
         )}
@@ -151,7 +170,7 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
             variant="ghost" 
             size="icon" 
             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete?.(file.id)}
+            onClick={() => onDelete?.(file)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

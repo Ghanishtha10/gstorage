@@ -1,8 +1,9 @@
+
 "use client";
 
 import { ContentFile } from '@/lib/types';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, Camera, CheckCircle2, X, RefreshCw } from 'lucide-react';
+import { Database, Loader2, Camera, CheckCircle2, X, Download, ShieldCheck } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useState, useRef } from 'react';
 
 interface AdminContentManagerProps {
@@ -45,6 +47,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   const [editType, setEditType] = useState<string>('');
   const [editThumb, setEditThumb] = useState('');
   const [editThumbFile, setEditThumbFile] = useState<File | null>(null);
+  const [editDownloadable, setEditDownloadable] = useState(true);
   
   const editThumbInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +55,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     if (!db || !fileToDelete) return;
     setIsDeleting(true);
     try {
-      // 1. Delete from Vercel Blob first
       const blobResponse = await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,7 +65,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         console.warn("Blob deletion might have failed or file already gone from storage.");
       }
 
-      // 2. If it had a custom thumbnail, delete that too
       if (fileToDelete.thumbnailUrl) {
         await fetch('/api/delete', {
           method: 'POST',
@@ -72,7 +73,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         });
       }
 
-      // 3. Finally delete metadata from Firestore
       await deleteDoc(doc(db, 'files', fileToDelete.id));
       
       toast({
@@ -98,6 +98,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     setEditType(file.type);
     setEditThumb(file.thumbnailUrl || '');
     setEditThumbFile(null);
+    setEditDownloadable(file.isDownloadable !== false);
   };
 
   const uploadToBlob = async (targetFile: File): Promise<string> => {
@@ -124,7 +125,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     try {
       let finalThumb = editThumb;
       if (editThumbFile) {
-        // If updating thumbnail, we should technically delete the old one
         if (fileToEdit.thumbnailUrl) {
           await fetch('/api/delete', {
             method: 'POST',
@@ -139,6 +139,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         name: editName,
         type: editType || 'other',
         thumbnailUrl: finalThumb || null,
+        isDownloadable: editDownloadable,
       });
       toast({
         title: "Metadata Synced",
@@ -237,6 +238,18 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                 className="flex h-12 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
               />
             </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/40">
+              <div className="space-y-0.5">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground">Public Availability</Label>
+                <p className="text-[9px] text-muted-foreground">Allow public users to download this file.</p>
+              </div>
+              <Switch 
+                checked={editDownloadable} 
+                onCheckedChange={setEditDownloadable} 
+              />
+            </div>
+
             <div className="space-y-4">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Thumbnail Override</Label>
               <div className="flex gap-2">

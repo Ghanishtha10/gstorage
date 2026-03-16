@@ -11,6 +11,7 @@ export interface ContentFile {
   size: number;
   tags: string[];
   uploadedAt: string;
+  isDownloadable?: boolean;
 }
 
 export interface AdminUser {
