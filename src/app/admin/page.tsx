@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -27,28 +28,28 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold mb-1">System Overview</h1>
-          <p className="text-muted-foreground">Manage your repository and assets in one place.</p>
+          <h1 className="text-2xl sm:text-3xl font-headline font-bold mb-1">System Overview</h1>
+          <p className="text-muted-foreground text-sm">Manage your repository and assets in one place.</p>
         </div>
-        <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-bold px-6 shadow-lg shadow-primary/20">
+        <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-bold px-6 shadow-lg shadow-primary/20 rounded-xl h-11 sm:h-12 uppercase tracking-widest text-[10px]">
           <Link href="/admin/upload">
             <Plus className="h-5 w-5" /> New Upload
           </Link>
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {stats.map((stat, i) => (
-          <Card key={i} className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</CardTitle>
+          <Card key={i} className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</CardTitle>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-xl sm:text-2xl font-bold">
                 {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/30" /> : stat.value}
               </div>
             </CardContent>
@@ -57,9 +58,9 @@ export default function AdminDashboard() {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="h-8 w-8 animate-spin mb-4" />
-          <p>Loading library...</p>
+          <p className="text-xs font-bold uppercase tracking-widest">Loading library...</p>
         </div>
       ) : (
         <AdminContentManager initialFiles={files || []} />

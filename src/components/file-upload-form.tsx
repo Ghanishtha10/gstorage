@@ -7,7 +7,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Sparkles, AlertCircle } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -62,7 +62,6 @@ export function FileUploadForm() {
           const errorData = await response.json();
           throw new Error(errorData.error || `Upload failed with status ${response.status}`);
         } else {
-          // Handle HTML error pages (like 413 Payload Too Large or 504 Timeout)
           if (response.status === 413) throw new Error('File is too large for server-side processing. Please use a smaller file.');
           throw new Error(`Server returned a non-JSON error (${response.status}). This usually happens for large files or timeouts.`);
         }
@@ -88,7 +87,6 @@ export function FileUploadForm() {
     setUploadProgress(10);
     
     try {
-      // 1. Upload main file to Vercel Blob
       const mainUrl = await uploadToBlob(file);
       setUploadProgress(50);
       
@@ -100,7 +98,6 @@ export function FileUploadForm() {
 
       setUploadProgress(70);
 
-      // 2. AI Tag Suggestions
       let suggestedTags = ['General'];
       try {
         const aiResponse = await suggestContentTags({
@@ -117,7 +114,6 @@ export function FileUploadForm() {
 
       setUploadProgress(90);
 
-      // 3. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -150,60 +146,60 @@ export function FileUploadForm() {
 
   return (
     <Card className="bg-card border-border/40 overflow-hidden shadow-2xl rounded-2xl">
-      <CardHeader className="bg-muted/10 pb-6 border-b border-border/20">
-        <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-sm font-bold">
-          <HardDrive className="h-5 w-5" />
+      <CardHeader className="bg-muted/10 pb-4 sm:pb-6 border-b border-border/20">
+        <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-xs sm:text-sm font-bold">
+          <HardDrive className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-xs">Processing via Secure Vercel Blob Tunnel.</CardDescription>
+        <CardDescription className="text-[10px] sm:text-xs">Processing via Secure Vercel Blob Tunnel.</CardDescription>
       </CardHeader>
-      <CardContent className="p-4 sm:p-8 space-y-8">
+      <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
         {!file ? (
           <div 
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if(f) setFile(f); }}
             className={cn(
-              "border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center space-y-4 transition-all cursor-pointer group relative",
+              "border-2 border-dashed rounded-2xl sm:rounded-3xl p-6 sm:p-16 text-center space-y-4 transition-all cursor-pointer group relative min-h-[200px] flex flex-col items-center justify-center",
               isDragging ? "border-primary bg-primary/5 scale-[0.99]" : "border-border/60 hover:border-primary/50 hover:bg-muted/10"
             )}
           >
             <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" id="file-upload" onChange={handleFileChange} />
             <div className="pointer-events-none">
               <div className={cn(
-                "h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm",
+                "h-12 w-12 sm:h-20 sm:w-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm",
                 isDragging ? "bg-primary/20 scale-110" : "bg-muted/30 group-hover:bg-primary/10 group-hover:scale-105"
               )}>
-                <Upload className={cn("h-10 w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                <Upload className={cn("h-6 w-6 sm:h-10 sm:w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
               </div>
-              <h4 className="font-bold text-xl uppercase tracking-tight">Select or Drag Asset</h4>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Powered by Vercel Blob</p>
+              <h4 className="font-bold text-lg sm:text-xl uppercase tracking-tight">Select or Drag Asset</h4>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Powered by Vercel Blob</p>
             </div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-4 rounded-2xl border bg-muted/20 border-border/40 shadow-sm">
-              <div className="flex items-center gap-4 overflow-hidden">
-                <div className="h-12 w-12 shrink-0 bg-primary/10 rounded-xl flex items-center justify-center shadow-inner">
-                  {fileType === 'image' && <ImageIcon className="h-6 w-6 text-primary" />}
-                  {fileType === 'video' && <Video className="h-6 w-6 text-primary" />}
-                  {fileType === 'audio' && <Headphones className="h-6 w-6 text-primary" />}
-                  {fileType === 'document' && <FileText className="h-6 w-6 text-primary" />}
-                  {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-6 w-6 text-primary" />}
+            <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border bg-muted/20 border-border/40 shadow-sm">
+              <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-inner">
+                  {fileType === 'image' && <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
+                  {fileType === 'video' && <Video className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
+                  {fileType === 'audio' && <Headphones className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
+                  {fileType === 'document' && <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
+                  {!['image', 'video', 'audio', 'document'].includes(fileType) && <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="font-bold text-sm truncate max-w-[140px] sm:max-w-[300px]">{file.name}</p>
-                  <p className="text-[10px] font-bold uppercase text-primary tracking-widest">
+                  <p className="font-bold text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[300px]">{file.name}</p>
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase text-primary tracking-widest">
                     {(file.size / 1024).toFixed(1)} KB
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0" disabled={isUploading}>
-                <X className="h-5 w-5" />
+              <Button variant="ghost" size="icon" onClick={() => setFile(null)} className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0" disabled={isUploading}>
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
                 <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Display Name</Label>
                 <input 
@@ -211,7 +207,7 @@ export function FileUploadForm() {
                   value={displayName} 
                   onChange={(e) => setDisplayName(e.target.value)}
                   disabled={isUploading}
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                  className="flex h-11 sm:h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
 
@@ -223,31 +219,31 @@ export function FileUploadForm() {
                   onChange={(e) => setFileType(e.target.value)}
                   disabled={isUploading}
                   placeholder="e.g. PDF, PNG..."
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                  className="flex h-11 sm:h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Custom Thumbnail (Optional)</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) setThumbFile(f); }} />
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="w-full h-12 rounded-xl border-dashed border-primary/30 hover:border-primary/60 transition-all bg-muted/5 gap-2" 
+                  className="w-full h-11 sm:h-12 rounded-xl border-dashed border-primary/30 hover:border-primary/60 transition-all bg-muted/5 gap-2" 
                   onClick={() => thumbInputRef.current?.click()}
                   disabled={isUploading}
                 >
                   {thumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <ImageIcon className="h-4 w-4" />}
-                  {thumbFile ? thumbFile.name : "Select Thumbnail"}
+                  <span className="truncate max-w-[200px]">{thumbFile ? thumbFile.name : "Select Thumbnail"}</span>
                 </Button>
-                {thumbFile && <Button variant="ghost" size="icon" className="h-12 w-12 text-destructive" onClick={() => setThumbFile(null)} disabled={isUploading}><X className="h-5 w-5" /></Button>}
+                {thumbFile && <Button variant="ghost" size="icon" className="h-11 sm:h-12 w-11 sm:w-12 text-destructive self-end sm:self-auto shrink-0" onClick={() => setThumbFile(null)} disabled={isUploading}><X className="h-5 w-5" /></Button>}
               </div>
             </div>
 
             <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-16 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-xs relative overflow-hidden group" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group" 
               onClick={handleUpload} 
               disabled={isUploading || !file}
             >
@@ -260,7 +256,7 @@ export function FileUploadForm() {
               <div className="flex items-center justify-center gap-2 relative z-10">
                 {isUploading ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                     <span className="flex items-center gap-2">
                       <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
                       Uploading . .. ...
@@ -268,7 +264,7 @@ export function FileUploadForm() {
                   </>
                 ) : (
                   <>
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span>Upload to Storage</span>
                   </>
                 )}

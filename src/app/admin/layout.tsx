@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AdminSidebar } from '@/components/admin-sidebar';
@@ -57,18 +58,18 @@ export default function AdminLayout({
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
         <header className="h-16 border-b border-border/40 flex items-center px-4 md:px-8 bg-card/80 backdrop-blur-md shrink-0 z-30">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="md:hidden">
               <MobileNav />
             </div>
-            <Link href="/" className="flex items-center gap-2">
-              <Database className="h-6 w-6 text-primary" />
-              <span className="font-headline font-bold text-lg tracking-tight">G <span className="text-primary">storage</span></span>
+            <Link href="/" className="flex items-center gap-2 min-w-0 shrink-0">
+              <Database className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <span className="font-headline font-bold text-base sm:text-lg tracking-tight truncate">G <span className="text-primary">storage</span></span>
             </Link>
           </div>
           
-          <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+          <div className="ml-auto flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
               <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">System Online</span>
             </div>
@@ -85,7 +86,7 @@ export default function AdminLayout({
         </header>
 
         <main className="flex-1 overflow-y-auto bg-background/50 custom-scrollbar">
-          <div className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-24">
+          <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full pb-24">
             {children}
           </div>
         </main>
