@@ -4,6 +4,15 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    // Check if the token exists to provide a better error message
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('Missing BLOB_READ_WRITE_TOKEN environment variable');
+      return NextResponse.json(
+        { error: 'Server configuration error: Missing storage token.' },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -12,7 +21,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Upload the file to Vercel Blob
-    // The BLOB_READ_WRITE_TOKEN environment variable is automatically used by the 'put' function
     const blob = await put(file.name, file, {
       access: 'public',
       contentType: file.type,
@@ -22,7 +30,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     console.error('Upload API error:', error);
     return NextResponse.json(
-      { error: (error as Error).message },
+      { error: (error as Error).message || 'An unexpected error occurred during upload.' },
       { status: 500 }
     );
   }

@@ -47,18 +47,24 @@ export function FileUploadForm() {
     const formData = new FormData();
     formData.append('file', targetFile);
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Upload failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+      }
+
+      const blob = await response.json();
+      if (!blob.url) throw new Error('Response missing file URL');
+      return blob.url;
+    } catch (err: any) {
+      console.error("Internal uploadToBlob error:", err);
+      throw err;
     }
-
-    const blob = await response.json();
-    return blob.url;
   };
 
   const handleUpload = async () => {
@@ -68,7 +74,7 @@ export function FileUploadForm() {
     setUploadProgress(10);
     
     try {
-      // 1. Upload main file to Vercel Blob via our API
+      // 1. Upload main file to Vercel Blob
       const mainUrl = await uploadToBlob(file);
       setUploadProgress(60);
       
@@ -80,7 +86,7 @@ export function FileUploadForm() {
 
       setUploadProgress(90);
 
-      // 2. Save ONLY metadata to Firestore
+      // 2. Save metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -99,7 +105,7 @@ export function FileUploadForm() {
       });
       router.push('/admin');
     } catch (error: any) {
-      console.error("Upload failed:", error);
+      console.error("Upload process failed:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
