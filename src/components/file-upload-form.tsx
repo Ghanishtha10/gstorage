@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 import { suggestContentTags } from '@/ai/flows/suggest-content-tags-flow';
+import { upload } from '@vercel/blob/client';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -46,36 +47,22 @@ export function FileUploadForm() {
     }
   };
 
-  const uploadToBlob = async (targetFile: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', targetFile);
-
+  /**
+   * Performs a client-side direct upload to Vercel Blob.
+   * This handles large files by bypassing the Next.js API route body limits.
+   */
+  const uploadToBlob = async (targetFile: File, onProgress?: (pct: number) => void): Promise<string> => {
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const newBlob = await upload(targetFile.name, targetFile, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        onUploadProgress: (progressEvent) => {
+          if (onProgress) onProgress(progressEvent.percentage);
+        },
       });
-
-      const contentType = response.headers.get("content-type");
-      if (!response.ok) {
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Upload failed with status ${response.status}`);
-        } else {
-          if (response.status === 413) throw new Error('File is too large for server-side processing. Please use a smaller file.');
-          throw new Error(`Server returned a non-JSON error (${response.status}). This usually happens for large files or timeouts.`);
-        }
-      }
-
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error('Server returned an unexpected response format. Please try again.');
-      }
-
-      const blob = await response.json();
-      if (!blob.url) throw new Error('Response missing file URL');
-      return blob.url;
+      return newBlob.url;
     } catch (err: any) {
-      console.error("Internal uploadToBlob error:", err);
+      console.error("Browser-to-Blob upload error:", err);
       throw err;
     }
   };
@@ -84,20 +71,21 @@ export function FileUploadForm() {
     if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(0);
     
     try {
-      const mainUrl = await uploadToBlob(file);
-      setUploadProgress(50);
+      // 1. Upload the main file directly from the browser to Vercel Blob
+      const mainUrl = await uploadToBlob(file, (pct) => setUploadProgress(pct * 0.8)); // 80% of progress for upload
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        setUploadProgress(60);
+        // 2. Upload thumbnail if present
         thumbnailUrl = await uploadToBlob(thumbFile);
       }
 
-      setUploadProgress(70);
+      setUploadProgress(85);
 
+      // 3. AI Categorization
       let suggestedTags = ['General'];
       try {
         const aiResponse = await suggestContentTags({
@@ -112,8 +100,9 @@ export function FileUploadForm() {
         console.warn("AI tagging failed:", aiError);
       }
 
-      setUploadProgress(90);
+      setUploadProgress(95);
 
+      // 4. Store metadata in Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -123,20 +112,21 @@ export function FileUploadForm() {
         size: file.size,
         tags: suggestedTags,
         uploadedAt: new Date().toISOString(),
+        isDownloadable: true,
       });
 
       setUploadProgress(100);
       toast({
         title: "Transfer Complete",
-        description: "File successfully added with AI-suggested tags.",
+        description: "Large asset successfully synchronized with the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
-      console.error("Upload process failed:", error);
+      console.error("Full upload flow failed:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
-        description: error.message || "An error occurred during the secure transfer.",
+        description: error.message || "The secure transfer was interrupted.",
       });
     } finally {
       setIsUploading(false);
@@ -149,9 +139,9 @@ export function FileUploadForm() {
       <CardHeader className="bg-muted/10 pb-4 sm:pb-6 border-b border-border/20">
         <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-xs sm:text-sm font-bold">
           <HardDrive className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>Asset Transfer</span>
+          <span>Large Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-[10px] sm:text-xs">Processing via Secure Vercel Blob Tunnel.</CardDescription>
+        <CardDescription className="text-[10px] sm:text-xs">Direct browser-to-cloud synchronization enabled.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
         {!file ? (
@@ -172,8 +162,8 @@ export function FileUploadForm() {
               )}>
                 <Upload className={cn("h-6 w-6 sm:h-10 sm:w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
               </div>
-              <h4 className="font-bold text-lg sm:text-xl uppercase tracking-tight">Select or Drag Asset</h4>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Powered by Vercel Blob</p>
+              <h4 className="font-bold text-lg sm:text-xl uppercase tracking-tight">Select Large File</h4>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Supporting assets up to 500MB+</p>
             </div>
           </div>
         ) : (
@@ -190,7 +180,7 @@ export function FileUploadForm() {
                 <div className="overflow-hidden">
                   <p className="font-bold text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[300px]">{file.name}</p>
                   <p className="text-[9px] sm:text-[10px] font-bold uppercase text-primary tracking-widest">
-                    {(file.size / 1024).toFixed(1)} KB
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
               </div>
@@ -201,7 +191,7 @@ export function FileUploadForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Display Name</Label>
+                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Asset Identity</Label>
                 <input 
                   id="displayName" 
                   value={displayName} 
@@ -212,20 +202,20 @@ export function FileUploadForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Category</Label>
+                <Label htmlFor="fileType" className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Classification</Label>
                 <input 
                   id="fileType" 
                   value={fileType} 
                   onChange={(e) => setFileType(e.target.value)}
                   disabled={isUploading}
-                  placeholder="e.g. PDF, PNG..."
+                  placeholder="e.g. Video, Document..."
                   className="flex h-11 sm:h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Custom Thumbnail (Optional)</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Visual Reference (Optional)</Label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input type="file" className="hidden" ref={thumbInputRef} accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) setThumbFile(f); }} />
                 <Button 
@@ -242,34 +232,45 @@ export function FileUploadForm() {
               </div>
             </div>
 
-            <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 mt-4 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group" 
-              onClick={handleUpload} 
-              disabled={isUploading || !file}
-            >
-              {isUploading && (
-                <div 
-                  className="absolute inset-y-0 left-0 bg-white/20 transition-all duration-300 ease-out" 
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              )}
-              <div className="flex items-center justify-center gap-2 relative z-10">
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
-                      Uploading . .. ...
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span>Upload to Storage</span>
-                  </>
-                )}
-              </div>
-            </Button>
+            <div className="space-y-4">
+               {isUploading && (
+                 <div className="space-y-2">
+                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary">
+                     <span>Transferring Bytes...</span>
+                     <span>{Math.round(uploadProgress)}%</span>
+                   </div>
+                   <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                     <div 
+                       className="h-full bg-primary transition-all duration-300 ease-out" 
+                       style={{ width: `${uploadProgress}%` }}
+                     />
+                   </div>
+                 </div>
+               )}
+
+              <Button 
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group" 
+                onClick={handleUpload} 
+                disabled={isUploading || !file}
+              >
+                <div className="flex items-center justify-center gap-2 relative z-10">
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
+                        Synchronizing...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span>Initiate Purge Protocol</span>
+                    </>
+                  )}
+                </div>
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { upload } from '@vercel/blob/client';
 
 export default function AdminProfilePage() {
   const db = useFirestore();
@@ -45,21 +46,16 @@ export default function AdminProfilePage() {
   };
 
   const uploadToBlob = async (targetFile: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', targetFile);
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Upload failed');
+    try {
+      const newBlob = await upload(targetFile.name, targetFile, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
+      return newBlob.url;
+    } catch (err: any) {
+      console.error("Profile photo upload error:", err);
+      throw err;
     }
-
-    const blob = await response.json();
-    return blob.url;
   };
 
   const handleSave = async (e: React.FormEvent) => {

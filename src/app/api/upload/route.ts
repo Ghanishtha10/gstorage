@@ -1,50 +1,53 @@
 
-import { put } from '@vercel/blob';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/nextjs';
 import { NextResponse } from 'next/server';
 
-export const maxDuration = 60; // Increase timeout for larger files
-
+/**
+ * Server-side endpoint to generate client-side upload tokens for Vercel Blob.
+ * This allows the browser to upload large files directly to storage, 
+ * bypassing the 4.5MB Next.js body size limit.
+ */
 export async function POST(request: Request): Promise<NextResponse> {
+  const body = (await request.json()) as HandleUploadBody;
+
   try {
-    // Check if the token exists to provide a better error message
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error('Missing BLOB_READ_WRITE_TOKEN environment variable');
-      return NextResponse.json(
-        { error: 'Server configuration error: Missing storage token.' },
-        { status: 500 }
-      );
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
-
-    // Upload the file to Vercel Blob
-    // 'public' access is required for the file to be accessible via URL
-    const blob = await put(file.name, file, {
-      access: 'public',
-      contentType: file.type,
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        // In a production app, you would verify the user's session here.
+        // For this prototype, we allow all authenticated-style requests.
+        return {
+          allowedContentTypes: [
+            'image/jpeg', 
+            'image/png', 
+            'image/gif', 
+            'video/mp4', 
+            'audio/mpeg', 
+            'audio/mp3',
+            'audio/wav',
+            'application/pdf',
+            'text/plain',
+            'application/zip'
+          ],
+          tokenPayload: JSON.stringify({
+            // Optional: information you want to receive back in onUploadCompleted
+          }),
+        };
+      },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // This is called by Vercel after the file is successfully uploaded.
+        // We handle the Firestore metadata storage on the client side for this prototype,
+        // but you could also perform server-side database updates here.
+        console.log('Blob upload completed:', blob.url);
+      },
     });
 
-    return NextResponse.json(blob);
+    return NextResponse.json(jsonResponse);
   } catch (error) {
-    console.error('Upload API error:', error);
-    
-    // Check for specific payload size errors which might manifest as various error types
-    const errorMessage = (error as Error).message || '';
-    if (errorMessage.includes('body size') || errorMessage.includes('large')) {
-       return NextResponse.json(
-        { error: 'The file is too large to be processed by this server route. Please use a file smaller than 4.5MB.' },
-        { status: 413 }
-      );
-    }
-
     return NextResponse.json(
-      { error: (error as Error).message || 'An unexpected error occurred during upload.' },
-      { status: 500 }
+      { error: (error as Error).message },
+      { status: 400 } // The client-side SDK looks for a non-200 response to handle errors
     );
   }
 }
