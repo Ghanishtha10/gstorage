@@ -55,7 +55,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     setIsDeleting(true);
     try {
       // Delete the file from Vercel Blob via our API
-      await fetch('/api/delete', {
+      const delResponse = await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: fileToDelete.url }),
@@ -107,8 +107,15 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to transmit asset to server.');
+      let errorMessage = 'Failed to transmit asset to server.';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        console.error('Edit upload error: Server returned non-JSON', e);
+      }
+      console.error(`Edit upload error [${response.status}]:`, errorMessage);
+      throw new Error(errorMessage);
     }
 
     const blob = await response.json();

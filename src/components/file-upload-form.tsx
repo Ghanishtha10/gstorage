@@ -45,7 +45,7 @@ export function FileUploadForm() {
   };
 
   /**
-   * Uploads a file to the server-side API endpoint.
+   * Uploads a file to the server-side API endpoint with robust error handling.
    */
   const uploadToBlob = async (targetFile: File): Promise<string> => {
     const formData = new FormData();
@@ -57,8 +57,15 @@ export function FileUploadForm() {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to transmit asset to server.');
+      let errorMessage = 'Failed to transmit asset to server.';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        console.error('Upload error: Server returned non-JSON response', e);
+      }
+      console.error(`Upload error [${response.status}]:`, errorMessage);
+      throw new Error(errorMessage);
     }
 
     const blob = await response.json();
