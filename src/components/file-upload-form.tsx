@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -118,7 +117,7 @@ export function FileUploadForm() {
       setUploadProgress(100);
       toast({
         title: "Synchronization Successful",
-        description: "Large asset has been committed to the vault.",
+        description: "Asset has been committed to the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
