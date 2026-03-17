@@ -65,7 +65,11 @@ export function FileUploadForm() {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText);
-            resolve(response.url);
+            if (response.error) {
+              reject(new Error(response.error));
+            } else {
+              resolve(response.url);
+            }
           } catch (e) {
             reject(new Error('Invalid server response (not JSON)'));
           }
@@ -271,7 +275,7 @@ export function FileUploadForm() {
                       <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                       <span className="flex items-center gap-2">
                         <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
-                        Synchronizing... {uploadProgress}%
+                        Uploading... {uploadProgress}%
                       </span>
                     </>
                   ) : (
