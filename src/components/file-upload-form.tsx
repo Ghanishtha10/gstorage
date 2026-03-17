@@ -38,6 +38,13 @@ export function FileUploadForm() {
     }
   }, [file]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setFile(selected);
+    }
+  };
+
   /**
    * Uploads a file using XMLHttpRequest to track progress.
    */
