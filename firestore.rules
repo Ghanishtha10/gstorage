@@ -19,13 +19,6 @@ service cloud.firestore {
     match /files/{fileId} {
       allow read: if true;
       allow write: if isAdmin();
-
-      // Anyone can read reviews, anyone can create ONE review per IP
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if true; // In production, you'd use a Cloud Function or complex rules to verify IP uniqueness
-        allow update, delete: if isAdmin();
-      }
     }
 
     // Publicly readable tags, admin-only writes

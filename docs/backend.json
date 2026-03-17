@@ -74,41 +74,6 @@
         "name"
       ]
     },
-    "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Review",
-      "type": "object",
-      "description": "A user-submitted review for a specific file, restricted by IP address.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the review."
-        },
-        "rating": {
-          "type": "number",
-          "description": "Star rating from 1 to 5."
-        },
-        "comment": {
-          "type": "string",
-          "description": "Textual feedback from the user."
-        },
-        "ipAddress": {
-          "type": "string",
-          "description": "The IP address of the reviewer used for restriction."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of the review.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "rating",
-        "comment",
-        "ipAddress",
-        "createdAt"
-      ]
-    },
     "AppConfiguration": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AppConfiguration",
@@ -153,16 +118,6 @@
             "$ref": "#/backend/entities/File"
           },
           "description": "Metadata for uploaded files."
-        }
-      },
-      {
-        "path": "/files/{fileId}/reviews/{reviewId}",
-        "definition": {
-          "entityName": "review",
-          "schema": {
-            "$ref": "#/backend/entities/Review"
-          },
-          "description": "Reviews for a specific file, scoped by file ID."
         }
       },
       {
