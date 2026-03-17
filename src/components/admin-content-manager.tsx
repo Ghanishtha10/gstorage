@@ -6,7 +6,6 @@ import { Database, Loader2, Camera, CheckCircle2, X } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { upload } from '@vercel/blob/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,7 +54,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     if (!db || !fileToDelete) return;
     setIsDeleting(true);
     try {
-      // Delete the file from Vercel Blob
+      // Delete the file from Vercel Blob via our API
       await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,16 +98,21 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   };
 
   const uploadToBlob = async (targetFile: File): Promise<string> => {
-    try {
-      const newBlob = await upload(targetFile.name, targetFile, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
-      });
-      return newBlob.url;
-    } catch (err: any) {
-      console.error("Edit thumbnail upload error:", err);
-      throw err;
+    const formData = new FormData();
+    formData.append('file', targetFile);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to transmit asset to server.');
     }
+
+    const blob = await response.json();
+    return blob.url;
   };
 
   const handleUpdate = async () => {

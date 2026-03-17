@@ -1,50 +1,38 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob';
+import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 /**
- * Server-side endpoint to generate client-side upload tokens for Vercel Blob.
- * This allows the browser to upload large files directly to storage, 
- * bypassing the 4.5MB Next.js body size limit.
+ * Server-side upload endpoint.
+ * Receives a file via FormData and uploads it to Vercel Blob using the server-side secret token.
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as HandleUploadBody;
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: 'Server configuration error: Missing storage token.' },
+        { status: 500 }
+      );
+    }
 
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
-        // Authorization logic: you could verify the user session here if needed
-        return {
-          allowedContentTypes: [
-            'image/jpeg', 
-            'image/png', 
-            'image/gif', 
-            'video/mp4', 
-            'audio/mpeg', 
-            'audio/mp3',
-            'audio/wav',
-            'application/pdf',
-            'text/plain',
-            'application/zip'
-          ],
-          tokenPayload: JSON.stringify({
-            // Optional metadata passed to onUploadCompleted
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This runs server-side after the client finishes the upload
-        console.log('Blob upload completed successfully:', blob.url);
-      },
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    // Upload directly from the server to Vercel Blob
+    const blob = await put(file.name, file, {
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
-    return NextResponse.json(jsonResponse);
+    return NextResponse.json(blob);
   } catch (error) {
-    console.error('Upload API Error:', error);
+    console.error('Server-side upload error:', error);
     return NextResponse.json(
-      { error: (error as Error).message || 'Failed to generate upload token' },
-      { status: 400 }
+      { error: (error as Error).message || 'Failed to process file upload' },
+      { status: 500 }
     );
   }
 }

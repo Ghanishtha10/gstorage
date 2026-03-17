@@ -12,13 +12,11 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 import { suggestContentTags } from '@/ai/flows/suggest-content-tags-flow';
-import { upload } from '@vercel/blob/client';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [fileType, setFileType] = useState<FileType>('');
@@ -47,42 +45,40 @@ export function FileUploadForm() {
   };
 
   /**
-   * Performs a client-side direct upload to Vercel Blob.
-   * This handles large files (up to hundreds of MB) by bypassing the Next.js API route body limits.
+   * Uploads a file to the server-side API endpoint.
    */
-  const uploadToBlob = async (targetFile: File, onProgress?: (pct: number) => void): Promise<string> => {
-    try {
-      const newBlob = await upload(targetFile.name, targetFile, {
-        access: 'public',
-        handleUploadUrl: '/api/upload', // Points to our route handler
-        onUploadProgress: (progressEvent) => {
-          if (onProgress) onProgress(progressEvent.percentage);
-        },
-      });
-      return newBlob.url;
-    } catch (err: any) {
-      console.error("Direct-to-Blob upload error:", err);
-      throw new Error(err.message || "Failed to stream asset to cloud storage.");
+  const uploadToBlob = async (targetFile: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', targetFile);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to transmit asset to server.');
     }
+
+    const blob = await response.json();
+    return blob.url;
   };
 
   const handleUpload = async () => {
     if (!file || !db) return;
 
     setIsUploading(true);
-    setUploadProgress(0);
     
     try {
-      // 1. Direct Browser-to-Blob Upload (Main File)
-      const mainUrl = await uploadToBlob(file, (pct) => setUploadProgress(pct * 0.8)); // 80% for main upload
+      // 1. Server-side Upload (Main File)
+      const mainUrl = await uploadToBlob(file);
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        // 2. Direct Browser-to-Blob Upload (Thumbnail)
+        // 2. Server-side Upload (Thumbnail)
         thumbnailUrl = await uploadToBlob(thumbFile);
       }
-
-      setUploadProgress(85);
 
       // 3. AI-Assisted Tagging
       let suggestedTags = ['General'];
@@ -99,8 +95,6 @@ export function FileUploadForm() {
         console.warn("AI metadata analysis skipped:", aiError);
       }
 
-      setUploadProgress(95);
-
       // 4. Synchronize Metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
@@ -114,7 +108,6 @@ export function FileUploadForm() {
         isDownloadable: true,
       });
 
-      setUploadProgress(100);
       toast({
         title: "Synchronization Successful",
         description: "Asset has been committed to the vault.",
@@ -129,7 +122,6 @@ export function FileUploadForm() {
       });
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 
@@ -138,9 +130,9 @@ export function FileUploadForm() {
       <CardHeader className="bg-muted/10 pb-4 sm:pb-6 border-b border-border/20">
         <CardTitle className="flex items-center gap-2 text-primary uppercase tracking-widest text-xs sm:text-sm font-bold">
           <HardDrive className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>Large Asset Transfer</span>
+          <span>Secure Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-[10px] sm:text-xs">Direct browser-to-cloud synchronization enabled for large files.</CardDescription>
+        <CardDescription className="text-[10px] sm:text-xs">Server-side synchronization enabled for secure storage.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
         {!file ? (
@@ -161,8 +153,8 @@ export function FileUploadForm() {
               )}>
                 <Upload className={cn("h-6 w-6 sm:h-10 sm:w-10 transition-colors", isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
               </div>
-              <h4 className="font-bold text-lg sm:text-xl uppercase tracking-tight">Select Large File</h4>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Supporting assets up to 500MB+</p>
+              <h4 className="font-bold text-lg sm:text-xl uppercase tracking-tight">Select Asset File</h4>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Standard server transfer active</p>
             </div>
           </div>
         ) : (
@@ -232,21 +224,6 @@ export function FileUploadForm() {
             </div>
 
             <div className="space-y-4">
-               {isUploading && (
-                 <div className="space-y-2">
-                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary">
-                     <span>Transferring Data Stream...</span>
-                     <span>{Math.round(uploadProgress)}%</span>
-                   </div>
-                   <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                     <div 
-                       className="h-full bg-primary transition-all duration-300 ease-out" 
-                       style={{ width: `${uploadProgress}%` }}
-                     />
-                   </div>
-                 </div>
-               )}
-
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group" 
                 onClick={handleUpload} 
