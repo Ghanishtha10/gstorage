@@ -5,11 +5,20 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle, Lock } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle, Lock, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ReviewSystem } from '@/components/review-system';
 
 interface ContentCardProps {
   file: ContentFile;
@@ -96,12 +105,12 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end gap-2 p-4">
            {isDownloadable ? (
              <Button 
                size="sm" 
                variant="secondary" 
-               className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 font-bold"
+               className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold"
                onClick={(e) => {
                  e.preventDefault();
                  handleDownload();
@@ -112,11 +121,37 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
                {isDownloading ? "Processing..." : "Download"}
              </Button>
            ) : (
-             <div className="w-full flex items-center justify-center gap-2 text-white/70 text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+             <div className="w-full flex items-center justify-center gap-2 text-white/70 text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                <Lock className="h-3 w-3" />
                Access Restricted
              </div>
            )}
+
+           <Dialog>
+             <DialogTrigger asChild>
+               <Button 
+                 size="sm" 
+                 variant="outline" 
+                 className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-all duration-500 font-bold bg-background/20 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-black"
+                 onClick={(e) => e.stopPropagation()}
+               >
+                 <MessageSquare className="h-4 w-4" />
+                 View Feedback
+               </Button>
+             </DialogTrigger>
+             <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto custom-scrollbar rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
+               <DialogHeader>
+                 <DialogTitle className="flex items-center gap-2">
+                   <MessageSquare className="h-5 w-5 text-primary" />
+                   {file.name}
+                 </DialogTitle>
+                 <DialogDescription className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                   Asset Interaction Logs & Feedback
+                 </DialogDescription>
+               </DialogHeader>
+               <ReviewSystem fileId={file.id} />
+             </DialogContent>
+           </Dialog>
         </div>
 
         {isPlaceholder && (

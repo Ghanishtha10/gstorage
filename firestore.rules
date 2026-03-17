@@ -3,22 +3,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * G STORAGE SECURITY RULES
-     * 
-     * Simplified for a prototype environment.
-     * Access is granted based on signed-in status and roles.
-     */
-
-    // --- Helper Functions ---
-
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** 
-     * @description In this prototype, any authenticated user is treated as an admin.
-     */
     function isAdmin() {
       return isSignedIn();
     }
@@ -27,12 +15,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Collection Rules ---
-
     // Publicly readable files, admin-only writes
     match /files/{fileId} {
       allow read: if true;
       allow write: if isAdmin();
+
+      // Anyone can read reviews, anyone can create ONE review per IP
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if true; // In production, you'd use a Cloud Function or complex rules to verify IP uniqueness
+        allow update, delete: if isAdmin();
+      }
     }
 
     // Publicly readable tags, admin-only writes

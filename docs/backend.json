@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "File": {
@@ -34,7 +35,7 @@
         },
         "tagIds": {
           "type": "array",
-          "description": "References to Tag entities associated with this file. (Relationship: File N:N Tag)",
+          "description": "References to Tag entities associated with this file.",
           "items": {
             "type": "string"
           }
@@ -61,18 +62,11 @@
         },
         "name": {
           "type": "string",
-          "description": "The name of the tag (e.g., 'Report', 'Marketing', 'Tutorial')."
+          "description": "The name of the tag."
         },
         "isAISuggested": {
           "type": "boolean",
-          "description": "Indicates if this tag was suggested by the AI content tagging tool."
-        },
-        "fileIds": {
-          "type": "array",
-          "description": "References to File entities associated with this tag. (Relationship: Tag N:N File)",
-          "items": {
-            "type": "string"
-          }
+          "description": "Indicates if this tag was suggested by AI."
         }
       },
       "required": [
@@ -80,27 +74,58 @@
         "name"
       ]
     },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "A user-submitted review for a specific file, restricted by IP address.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Star rating from 1 to 5."
+        },
+        "comment": {
+          "type": "string",
+          "description": "Textual feedback from the user."
+        },
+        "ipAddress": {
+          "type": "string",
+          "description": "The IP address of the reviewer used for restriction."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of the review.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "rating",
+        "comment",
+        "ipAddress",
+        "createdAt"
+      ]
+    },
     "AppConfiguration": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AppConfiguration",
       "type": "object",
-      "description": "Stores global application settings such as theme preferences.",
+      "description": "Stores global application settings.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the AppConfiguration entity. (Expected to be a single, fixed ID like 'globalSettings' as it represents global app configuration)."
+          "type": "string"
         },
         "isDarkModeEnabled": {
-          "type": "boolean",
-          "description": "Boolean flag indicating if the dark mode theme is currently active."
+          "type": "boolean"
         },
         "selectedAccentColorHex": {
-          "type": "string",
-          "description": "The hexadecimal color code representing the user's chosen accent color (e.g., '#73B6CC')."
+          "type": "string"
         },
         "lastUpdatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the application configuration was last updated.",
           "format": "date-time"
         }
       },
@@ -127,13 +152,17 @@
           "schema": {
             "$ref": "#/backend/entities/File"
           },
-          "description": "Stores metadata for all uploaded files. Files are publicly readable, and their management (upload, deletion, tagging) is restricted to administrators. This collection supports secure list operations for public content.",
-          "params": [
-            {
-              "name": "fileId",
-              "description": "The unique identifier for a specific file."
-            }
-          ]
+          "description": "Metadata for uploaded files."
+        }
+      },
+      {
+        "path": "/files/{fileId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Reviews for a specific file, scoped by file ID."
         }
       },
       {
@@ -143,13 +172,7 @@
           "schema": {
             "$ref": "#/backend/entities/Tag"
           },
-          "description": "Manages content tags used to categorize files. Tags are exclusively managed (create, read, update, delete) by administrators, potentially including AI-suggested tags. This collection supports secure list operations for admin management.",
-          "params": [
-            {
-              "name": "tagId",
-              "description": "The unique identifier for a specific tag."
-            }
-          ]
+          "description": "Content categorization tags."
         }
       },
       {
@@ -159,16 +182,9 @@
           "schema": {
             "$ref": "#/backend/entities/AppConfiguration"
           },
-          "description": "Contains user-specific application settings and preferences, such as dark mode and accent color. Each user has a single configuration document within their dedicated subcollection (e.g., with document ID 'settings'), ensuring path-based ownership and authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this configuration."
-            }
-          ]
+          "description": "User preferences."
         }
       }
-    ],
-    "reasoning": "The Firestore structure for the Content Locker application is designed following strict security and scalability principles, primarily focusing on Authorization Independence, Structural Segregation, and clear Access Modeling. \n\n**Authorization Independence & Denormalization:**\n\n1.  **Files (`/files/{fileId}`):** All files are designated for public read access, while write and delete operations are restricted to administrators. This simplifies security rules immensely. Authorization for write/delete is independent of any document-specific data, relying instead on a global role check (if the user is an admin). This avoids any `get()` operations on parent documents to determine permissions for files, thus supporting atomic operations and reducing complexity. No denormalization for authorization is needed within the `File` documents themselves, as permissions are global or role-based.\n2.  **Tags (`/tags/{tagId}`):** Similar to files, tags are exclusively managed by administrators. Authorization for all operations (create, read, update, delete) is based on the administrator role. This design choice maintains authorization independence, as no `get()` on parent documents is required to determine tag permissions.\n3.  **User App Configuration (`/users/{userId}/appConfigurations`):** Each user's application preferences are stored in a dedicated subcollection under their unique user ID. This implements **Path-Based Ownership**, where `request.auth.uid` directly maps to `{userId}` in the path. This structure naturally achieves authorization independence; a user's access to their configuration is determined solely by their UID matching the path parameter, without needing to retrieve any parent document to check ownership.\n\n**Structural Segregation & QAPs (Rules are not Filters):**\n\n1.  **Public Content (`/files`):** By making all documents in the `/files` collection publicly readable, we ensure a homogeneous security posture. This directly supports the QAP principle: clients can securely `list` all files without rules needing to filter out unauthorized documents, because *all* documents are authorized for public read. Admin write/delete is an additional layer on this homogeneous read access.\n2.  **Admin-Managed Content (`/tags`):** All documents in the `/tags` collection are exclusively accessible to administrators. This also provides a homogeneous security posture. Administrators can securely `list` tags because the `list` operation itself will be gated by an admin role check in security rules, ensuring that only authorized users receive any results. No client-side filtering is required.\n3.  **Private User Data (`/users/{userId}/appConfigurations`):** Each user's configuration is segregated into their own subcollection. This means a `list` operation on `/users/{userId}/appConfigurations` for a given `userId` will only return the settings for that specific user, which the requesting user (if `request.auth.uid == userId`) is authorized to see. This inherently satisfies QAP, as the query scope is already tightly bound to the authorized user.\n\n**Admin Roles (DBAC):**\n\nFor implementing \"Admin Only\" features, a dedicated collection (e.g., `/roles_admin/{uid}`) would be used. The existence of a document at `/roles_admin/$(request.auth.uid)` would signify admin status. While crucial for security rules, this collection is not included in the `firestorePaths` output because it does not map directly to one of the provided application data entities (`File`, `Tag`, `AppConfiguration`) as per the strict output requirements for `$ref` and `entityName` derivation. However, its implementation is a core part of the overall security design and would be used in rules for `/files` (write/delete) and `/tags` (all operations)."
+    ]
   }
 }
