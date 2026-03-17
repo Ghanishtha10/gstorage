@@ -49,21 +49,21 @@ export function FileUploadForm() {
 
   /**
    * Performs a client-side direct upload to Vercel Blob.
-   * This handles large files by bypassing the Next.js API route body limits.
+   * This handles large files (up to hundreds of MB) by bypassing the Next.js API route body limits.
    */
   const uploadToBlob = async (targetFile: File, onProgress?: (pct: number) => void): Promise<string> => {
     try {
       const newBlob = await upload(targetFile.name, targetFile, {
         access: 'public',
-        handleUploadUrl: '/api/upload',
+        handleUploadUrl: '/api/upload', // Points to our route handler
         onUploadProgress: (progressEvent) => {
           if (onProgress) onProgress(progressEvent.percentage);
         },
       });
       return newBlob.url;
     } catch (err: any) {
-      console.error("Browser-to-Blob upload error:", err);
-      throw err;
+      console.error("Direct-to-Blob upload error:", err);
+      throw new Error(err.message || "Failed to stream asset to cloud storage.");
     }
   };
 
@@ -74,18 +74,18 @@ export function FileUploadForm() {
     setUploadProgress(0);
     
     try {
-      // 1. Upload the main file directly from the browser to Vercel Blob
-      const mainUrl = await uploadToBlob(file, (pct) => setUploadProgress(pct * 0.8)); // 80% of progress for upload
+      // 1. Direct Browser-to-Blob Upload (Main File)
+      const mainUrl = await uploadToBlob(file, (pct) => setUploadProgress(pct * 0.8)); // 80% for main upload
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        // 2. Upload thumbnail if present
+        // 2. Direct Browser-to-Blob Upload (Thumbnail)
         thumbnailUrl = await uploadToBlob(thumbFile);
       }
 
       setUploadProgress(85);
 
-      // 3. AI Categorization
+      // 3. AI-Assisted Tagging
       let suggestedTags = ['General'];
       try {
         const aiResponse = await suggestContentTags({
@@ -97,12 +97,12 @@ export function FileUploadForm() {
           suggestedTags = aiResponse.tags;
         }
       } catch (aiError) {
-        console.warn("AI tagging failed:", aiError);
+        console.warn("AI metadata analysis skipped:", aiError);
       }
 
       setUploadProgress(95);
 
-      // 4. Store metadata in Firestore
+      // 4. Synchronize Metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -117,12 +117,12 @@ export function FileUploadForm() {
 
       setUploadProgress(100);
       toast({
-        title: "Transfer Complete",
-        description: "Large asset successfully synchronized with the vault.",
+        title: "Synchronization Successful",
+        description: "Large asset has been committed to the vault.",
       });
       router.push('/admin');
     } catch (error: any) {
-      console.error("Full upload flow failed:", error);
+      console.error("Critical Upload Error:", error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
@@ -141,7 +141,7 @@ export function FileUploadForm() {
           <HardDrive className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Large Asset Transfer</span>
         </CardTitle>
-        <CardDescription className="text-[10px] sm:text-xs">Direct browser-to-cloud synchronization enabled.</CardDescription>
+        <CardDescription className="text-[10px] sm:text-xs">Direct browser-to-cloud synchronization enabled for large files.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
         {!file ? (
@@ -236,7 +236,7 @@ export function FileUploadForm() {
                {isUploading && (
                  <div className="space-y-2">
                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-primary">
-                     <span>Transferring Bytes...</span>
+                     <span>Transferring Data Stream...</span>
                      <span>{Math.round(uploadProgress)}%</span>
                    </div>
                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">

@@ -15,7 +15,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        // Verification logic for session or user could go here
+        // Authorization logic: you could verify the user session here if needed
         return {
           allowedContentTypes: [
             'image/jpeg', 
@@ -30,13 +30,13 @@ export async function POST(request: Request): Promise<NextResponse> {
             'application/zip'
           ],
           tokenPayload: JSON.stringify({
-            // Optional data can be passed here
+            // Optional metadata passed to onUploadCompleted
           }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // Metadata storage is primarily handled on client in this prototype
-        console.log('Blob upload completed:', blob.url);
+        // This runs server-side after the client finishes the upload
+        console.log('Blob upload completed successfully:', blob.url);
       },
     });
 
@@ -44,7 +44,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     console.error('Upload API Error:', error);
     return NextResponse.json(
-      { error: (error as Error).message },
+      { error: (error as Error).message || 'Failed to generate upload token' },
       { status: 400 }
     );
   }
