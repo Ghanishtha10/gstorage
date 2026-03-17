@@ -20,6 +20,7 @@ export function FileUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [fileType, setFileType] = useState<FileType>('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const db = useFirestore();
@@ -37,54 +38,66 @@ export function FileUploadForm() {
     }
   }, [file]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-    }
-  };
-
   /**
-   * Uploads a file to the server-side API endpoint with robust error handling.
+   * Uploads a file using XMLHttpRequest to track progress.
    */
-  const uploadToBlob = async (targetFile: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', targetFile);
+  const uploadToBlob = (targetFile: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append('file', targetFile);
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(percentComplete);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.url);
+          } catch (e) {
+            reject(new Error('Invalid server response (not JSON)'));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || `Upload failed (${xhr.status})`));
+          } catch (e) {
+            reject(new Error(`Server error (${xhr.status}): ${xhr.statusText}`));
+          }
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Network error during transfer.')));
+      xhr.open('POST', '/api/upload');
+      xhr.send(formData);
     });
-
-    if (!response.ok) {
-      let errorMessage = 'Failed to transmit asset to server.';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (e) {
-        console.error('Upload error: Server returned non-JSON response', e);
-      }
-      console.error(`Upload error [${response.status}]:`, errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    const blob = await response.json();
-    return blob.url;
   };
 
   const handleUpload = async () => {
     if (!file || !db) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
-      // 1. Server-side Upload (Main File)
+      // 1. Server-side Upload (Main File) with progress
       const mainUrl = await uploadToBlob(file);
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        // 2. Server-side Upload (Thumbnail)
-        thumbnailUrl = await uploadToBlob(thumbFile);
+        // 2. Server-side Upload (Thumbnail) - simpler fetch since these are usually small
+        const thumbFormData = new FormData();
+        thumbFormData.append('file', thumbFile);
+        const thumbRes = await fetch('/api/upload', { method: 'POST', body: thumbFormData });
+        if (thumbRes.ok) {
+          const thumbBlob = await thumbRes.json();
+          thumbnailUrl = thumbBlob.url;
+        }
       }
 
       // 3. AI-Assisted Tagging
@@ -129,6 +142,7 @@ export function FileUploadForm() {
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -232,17 +246,25 @@ export function FileUploadForm() {
 
             <div className="space-y-4">
               <Button 
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group" 
+                className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/5 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group border border-primary/20" 
                 onClick={handleUpload} 
                 disabled={isUploading || !file}
               >
+                {/* Progress Fill Background */}
+                {isUploading && (
+                  <div 
+                    className="absolute inset-0 bg-primary/40 transition-all duration-300 ease-out" 
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                )}
+                
                 <div className="flex items-center justify-center gap-2 relative z-10">
                   {isUploading ? (
                     <>
                       <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                       <span className="flex items-center gap-2">
                         <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
-                        Synchronizing...
+                        Synchronizing... {uploadProgress}%
                       </span>
                     </>
                   ) : (
