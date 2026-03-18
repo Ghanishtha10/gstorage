@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -12,12 +13,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
-  // Default to Royal Violet
-  const [accent, setAccent] = useState<AccentColor>("violet");
+  // Default to Sky Blue ("default")
+  const [accent, setAccent] = useState<AccentColor>("default");
 
   useEffect(() => {
     const savedAccent = localStorage.getItem("gstorage-accent") as AccentColor;
-    const initialAccent = savedAccent || "violet";
+    const initialAccent = savedAccent || "default";
     applyAccent(initialAccent);
   }, []);
 
