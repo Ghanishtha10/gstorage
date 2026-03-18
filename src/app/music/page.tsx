@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, Music, Headphones, Volume2, Disc, Play } from 'lucide-react';
+import { ArrowLeft, Music, Headphones, Volume2, Disc, Play, Sparkles, Zap, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -24,8 +24,8 @@ export default function MusicLibraryPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12">
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="text-center space-y-2 mb-12">
+        <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="text-center space-y-2 mb-8">
             <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/5 group relative overflow-hidden">
                <Headphones className="h-8 w-8 text-primary relative z-10 animate-bounce" />
             </div>
@@ -35,8 +35,31 @@ export default function MusicLibraryPage() {
             </p>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <Card className="bg-card/40 border-border/40 hover:bg-card/60 transition-colors">
+              <CardHeader className="pb-2">
+                <Sparkles className="h-5 w-5 text-primary mb-2" />
+                <CardTitle className="text-sm font-bold uppercase">Curated Vibes</CardTitle>
+                <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Engineered for focus</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="bg-card/40 border-border/40 hover:bg-card/60 transition-colors">
+              <CardHeader className="pb-2">
+                <Zap className="h-5 w-5 text-secondary mb-2" />
+                <CardTitle className="text-sm font-bold uppercase">Focus Flow</CardTitle>
+                <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Strategic planning mode</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="bg-card/40 border-border/40 hover:bg-card/60 transition-colors">
+              <CardHeader className="pb-2">
+                <Moon className="h-5 w-5 text-blue-400 mb-2" />
+                <CardTitle className="text-sm font-bold uppercase">Night Drive</CardTitle>
+                <CardDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Late-night maintenance</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
           <div className="w-full">
-            {/* Spotify Player */}
             <Card className="bg-card/50 border-border/40 overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/5">
               <CardHeader className="bg-muted/10 border-b border-border/10 pb-4 pt-4 px-6">
                 <div className="flex items-center justify-between">
