@@ -2,14 +2,13 @@
 "use client";
 
 import Link from 'next/link';
-import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
+import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones, ArrowRight, Disc, Play } from 'lucide-react';
+import { Database, Loader2, UserCircle, ShieldCheck, Palette, Headphones, ArrowRight, Disc, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 
 export default function Home() {
@@ -32,7 +31,6 @@ export default function Home() {
 
   const adminName = adminProfile?.displayName || user?.displayName || 'Master Admin';
   const adminPhoto = adminProfile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
-  const adminBio = adminProfile?.bio || 'System Administrator';
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
@@ -78,7 +76,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 sm:py-12 pb-32">
+      <main className="flex-1 container mx-auto px-4 py-8 sm:py-12">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6 animate-in fade-in slide-in-from-left-4 duration-700">
             <div className="space-y-1">
@@ -123,35 +121,35 @@ export default function Home() {
               <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] sm:text-xs px-4">The vault is currently empty.</p>
             </div>
           )}
+
+          {/* Music Bar - In Flow Positioning */}
+          <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl mx-auto">
+            <Link href="/music" className="block">
+              <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.01]">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                    <Disc className="h-6 w-6 text-primary animate-spin-slow" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-widest text-primary truncate">Music Player</p>
+                    <p className="text-[9px] text-muted-foreground font-medium truncate uppercase tracking-tight">System Audio Synchronization Active</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Stream Ready</span>
+                  </div>
+                  <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground group-hover:scale-110 transition-transform">
+                    <Play className="h-5 w-5 fill-primary-foreground" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
         </section>
       </main>
-
-      {/* Floating Bottom Music Bar on Home */}
-      <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-40 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <Link href="/music" className="block">
-          <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.01]">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-                <Disc className="h-6 w-6 text-primary animate-spin-slow" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest text-primary truncate">Music Player</p>
-                <p className="text-[9px] text-muted-foreground font-medium truncate uppercase tracking-tight">System Audio Synchronization Active</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Stream Ready</span>
-              </div>
-              <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground group-hover:scale-110 transition-transform">
-                <Play className="h-5 w-5 fill-primary-foreground" />
-              </div>
-            </div>
-          </div>
-        </Link>
-      </div>
 
       <footer className="border-t border-border/40 py-8 sm:py-12 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold font-mono">
