@@ -1,11 +1,10 @@
-
 "use client";
 
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,11 +31,6 @@ export default function Home() {
 
   const { data: adminProfile } = useDoc(adminProfileRef);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.refresh();
-  };
-
   const adminName = adminProfile?.displayName || user?.displayName || 'Master Admin';
   const adminPhoto = adminProfile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
   const adminBio = adminProfile?.bio || 'System Administrator';
@@ -47,9 +41,14 @@ export default function Home() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group shrink-0">
             <Database className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
-            <span className="font-headline font-bold text-lg sm:text-xl tracking-tight">G <span className="text-primary">storage</span></span>
+            <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-1.5 sm:gap-4">
+            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Music Player">
+              <Link href="/music">
+                <Music className="h-4 w-4" />
+              </Link>
+            </Button>
             <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Customize Theme">
               <Link href="/themes">
                 <Palette className="h-4 w-4" />
@@ -83,15 +82,27 @@ export default function Home() {
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12 pb-32">
         <section className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-border/40 pb-6 animate-in fade-in slide-in-from-left-4 duration-700">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">File Storage</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm font-medium">Securely browsing the global digital asset vault.</p>
-            </div>
-            {!isLoading && files && (
-              <div className="inline-flex self-start md:self-auto text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
-                {files.length} items active
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                 <ShieldCheck className="h-3 w-3 text-primary animate-pulse" />
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Secure Vault Online</span>
               </div>
-            )}
+              <h1 className="text-2xl sm:text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">Digital Repository</h1>
+              <p className="text-muted-foreground text-xs sm:text-sm font-medium">Accessing globally distributed asset nodes.</p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button asChild variant="secondary" className="rounded-xl h-10 px-4 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-secondary/5">
+                <Link href="/music">
+                  <Headphones className="h-4 w-4" /> Music Player
+                </Link>
+              </Button>
+              {!isLoading && files && (
+                <div className="inline-flex text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
+                  {files.length} units active
+                </div>
+              )}
+            </div>
           </div>
           
           {isLoading ? (

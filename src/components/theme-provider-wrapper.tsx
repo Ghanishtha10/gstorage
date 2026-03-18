@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -13,14 +12,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProviderWrapper({ children }: { children: ReactNode }) {
-  const [accent, setAccent] = useState<AccentColor>("default");
+  // Default to Royal Violet
+  const [accent, setAccent] = useState<AccentColor>("violet");
 
-  // Local-only theme management to avoid Firestore permission issues
   useEffect(() => {
     const savedAccent = localStorage.getItem("gstorage-accent") as AccentColor;
-    if (savedAccent) {
-      applyAccent(savedAccent);
-    }
+    const initialAccent = savedAccent || "violet";
+    applyAccent(initialAccent);
   }, []);
 
   const applyAccent = (newAccent: AccentColor) => {
