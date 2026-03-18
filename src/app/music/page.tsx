@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
-// Manually curated track list based on the lofi theme
+// Manually curated track list inspired by the requested playlist
 const TRACKS = [
   { id: 1, title: "Midnight Coffee", artist: "Lofi Girl", duration: "2:45" },
   { id: 2, title: "Rainy Window", artist: "Cloudy Beats", duration: "3:12" },
@@ -35,6 +35,11 @@ const TRACKS = [
   { id: 23, title: "Vinyl Crackle", artist: "Old School", duration: "2:55" },
   { id: 24, title: "Floating Clouds", artist: "Atmosphere", duration: "4:15" },
   { id: 25, title: "Secret Garden", artist: "Hidden", duration: "3:35" },
+  { id: 26, title: "Moonlight Sonata (Lofi)", artist: "Classical Beats", duration: "4:00" },
+  { id: 27, title: "Sakura Petals", artist: "Tokyo Vibes", duration: "2:50" },
+  { id: 28, title: "Midnight Subway", artist: "City Pulse", duration: "3:20" },
+  { id: 29, title: "Lost in Thought", artist: "Pensive", duration: "3:45" },
+  { id: 30, title: "Starlit Path", artist: "Night Sky", duration: "3:10" },
 ];
 
 export default function MusicLibraryPage() {
@@ -83,7 +88,7 @@ export default function MusicLibraryPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[600px] w-full px-6">
+                <ScrollArea className="h-[650px] w-full px-6">
                   <div className="space-y-1 py-4">
                     {TRACKS.map((track) => (
                       <div 
@@ -145,4 +150,3 @@ export default function MusicLibraryPage() {
     </div>
   );
 }
-
