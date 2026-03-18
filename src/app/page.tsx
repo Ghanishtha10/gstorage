@@ -100,7 +100,7 @@ export default function Home() {
                 <ContentCard key={file.id} file={file} index={index} />
               ))}
               
-              <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 aspect-video sm:aspect-auto">
+              <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 aspect-video sm:aspect-auto min-h-[200px]">
                 <Link href="/music" className="absolute inset-0 z-10" aria-label="Open Music Player" />
                 <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
                   <Headphones className="h-8 w-8 text-primary animate-bounce" />
@@ -122,7 +122,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Music Bar - In Flow Positioning */}
+          {/* Music Bar - In Flow Positioning at the bottom of the section */}
           <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl mx-auto">
             <Link href="/music" className="block">
               <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.01]">
