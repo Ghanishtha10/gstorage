@@ -13,7 +13,7 @@ export default function MusicLibraryPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
              <Music className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
-            <span className="font-headline font-bold text-xl tracking-tight uppercase">Music <span className="text-primary">Library</span></span>
+            <span className="font-headline font-bold text-xl tracking-tight uppercase">File <span className="text-primary">Storage</span></span>
           </Link>
           <Button variant="ghost" size="sm" asChild className="gap-2 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10">
             <Link href="/">
@@ -54,7 +54,7 @@ export default function MusicLibraryPage() {
             <CardContent className="p-0">
               <div className="w-full bg-black/5 min-h-[800px]">
                  <iframe 
-                  src="https://open.spotify.com/embed/playlist/7A0Jnb8AqB669RawoU8Tll?utm_source=generator&theme=0" 
+                  src="https://open.spotify.com/embed/playlist/7A0Jnb8AqB669RawoU8Tll?utm_source=generator" 
                   width="100%" 
                   height="800" 
                   frameBorder="0" 
