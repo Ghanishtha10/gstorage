@@ -1,15 +1,17 @@
+
 "use client";
 
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
   const db = useFirestore();
@@ -44,11 +46,6 @@ export default function Home() {
             <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-1.5 sm:gap-4">
-            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Music Player">
-              <Link href="/music">
-                <Music className="h-4 w-4" />
-              </Link>
-            </Button>
             <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Customize Theme">
               <Link href="/themes">
                 <Palette className="h-4 w-4" />
@@ -87,16 +84,11 @@ export default function Home() {
                  <ShieldCheck className="h-3 w-3 text-primary animate-pulse" />
                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Secure Vault Online</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">Digital Repository</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm font-medium">Accessing globally distributed asset nodes.</p>
+              <h1 className="text-3xl sm:text-4xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">File Storage</h1>
+              <p className="text-muted-foreground text-sm sm:text-base font-medium">Securely browsing the global digital asset vault.</p>
             </div>
             
             <div className="flex items-center gap-3">
-              <Button asChild variant="secondary" className="rounded-xl h-10 px-4 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-secondary/5">
-                <Link href="/music">
-                  <Headphones className="h-4 w-4" /> Music Player
-                </Link>
-              </Button>
               {!isLoading && files && (
                 <div className="inline-flex text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
                   {files.length} units active
@@ -115,6 +107,20 @@ export default function Home() {
               {files?.map((file: any, index: number) => (
                 <ContentCard key={file.id} file={file} index={index} />
               ))}
+              
+              {/* Music Player Button positioned at the end of the files grid */}
+              <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 aspect-video sm:aspect-auto">
+                <Link href="/music" className="absolute inset-0 z-10" aria-label="Open Music Player" />
+                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                  <Headphones className="h-8 w-8 text-primary animate-bounce" />
+                </div>
+                <div className="text-center space-y-1">
+                  <h3 className="font-bold text-sm uppercase tracking-widest text-primary">Music Player</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium flex items-center justify-center gap-1 group-hover:text-primary transition-colors">
+                    Access Audio Library <ArrowRight className="h-3 w-3" />
+                  </p>
+                </div>
+              </Card>
             </div>
           )}
           

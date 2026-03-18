@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, Music, Headphones, Volume2, Sparkles, Disc } from 'lucide-react';
+import { ArrowLeft, Music, Headphones, Volume2, Disc } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -23,8 +24,8 @@ export default function MusicLibraryPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12 flex flex-col items-center">
-        <div className="w-full max-w-5xl space-y-12">
-          <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="w-full max-w-4xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="text-center space-y-4">
             <div className="h-20 w-20 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/5 group relative overflow-hidden">
                <div className="absolute inset-0 bg-primary/20 animate-pulse" />
                <Headphones className="h-10 w-10 text-primary relative z-10 animate-bounce" />
@@ -35,68 +36,35 @@ export default function MusicLibraryPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2 bg-card/50 border-border/40 overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-left-8 duration-700">
-              <CardHeader className="bg-muted/10 border-b border-border/10 pb-6 pt-6 px-8">
-                <div className="flex items-center justify-between">
-                   <div className="space-y-1">
-                     <CardTitle className="text-xl font-bold flex items-center gap-3">
-                       <Disc className="h-6 w-6 text-primary animate-spin-slow" /> Active Playlist
-                     </CardTitle>
-                     <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-primary/70">Spotify Integration Active</CardDescription>
-                   </div>
-                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
-                    <Volume2 className="h-3 w-3 text-secondary animate-pulse" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-secondary">Audio Optimized</span>
-                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="aspect-video w-full bg-black/5">
-                   <iframe 
-                    src="https://open.spotify.com/embed/playlist/7A0Jnb8AqB669RawoU8Tll?utm_source=generator&theme=0" 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                    loading="lazy"
-                    className="w-full h-full border-0"
-                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
-               <Card className="bg-card/50 border-border/40 rounded-[2rem] overflow-hidden group">
-                 <CardHeader className="pb-4">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" /> Curated Vibes
-                    </CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                    <div className="p-4 rounded-2xl bg-muted/20 border border-border/20 group-hover:border-primary/40 transition-colors">
-                       <p className="text-xs font-bold uppercase tracking-widest mb-1">Focus Flow</p>
-                       <p className="text-[10px] text-muted-foreground leading-relaxed">Engineered for intense coding sessions and deep strategic planning.</p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-muted/20 border border-border/20 group-hover:border-primary/40 transition-colors">
-                       <p className="text-xs font-bold uppercase tracking-widest mb-1">Night Drive</p>
-                       <p className="text-[10px] text-muted-foreground leading-relaxed">Late-night synths and melodic layers for evening maintenance.</p>
-                    </div>
-                    <Button variant="outline" className="w-full rounded-xl h-11 border-primary/20 hover:border-primary/50 font-bold uppercase tracking-widest text-[10px] gap-2">
-                      <Music className="h-4 w-4" /> Load More Vibes
-                    </Button>
-                 </CardContent>
-               </Card>
-
-               <div className="p-6 rounded-[2rem] bg-primary text-primary-foreground shadow-xl shadow-primary/20 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Headphones className="h-5 w-5" />
-                    <p className="font-bold text-sm uppercase tracking-tight">Audio Experience</p>
-                  </div>
-                  <p className="text-xs leading-relaxed opacity-90">Your digital locker is now equipped with spatial audio synchronization. Play your tracks while managing your assets.</p>
-               </div>
-            </div>
-          </div>
+          <Card className="bg-card/50 border-border/40 overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/5">
+            <CardHeader className="bg-muted/10 border-b border-border/10 pb-6 pt-6 px-8">
+              <div className="flex items-center justify-between">
+                 <div className="space-y-1">
+                   <CardTitle className="text-xl font-bold flex items-center gap-3">
+                     <Disc className="h-6 w-6 text-primary animate-spin-slow" /> Global Stream
+                   </CardTitle>
+                   <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-primary/70">Spotify Synchronization Active</CardDescription>
+                 </div>
+                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+                  <Volume2 className="h-3 w-3 text-secondary animate-pulse" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-secondary">Optimized</span>
+                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="aspect-video w-full bg-black/5">
+                 <iframe 
+                  src="https://open.spotify.com/embed/playlist/7A0Jnb8AqB669RawoU8Tll?utm_source=generator&theme=0" 
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                  loading="lazy"
+                  className="w-full h-full border-0"
+                 />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
