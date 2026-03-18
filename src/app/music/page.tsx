@@ -2,13 +2,13 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft, Music, Headphones, Volume2, Disc, Play } from 'lucide-react';
+import { ArrowLeft, Music, Headphones, Volume2, Disc } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function MusicLibraryPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col selection:bg-primary/30 pb-24">
+    <div className="min-h-screen bg-background flex flex-col selection:bg-primary/30">
       <header className="border-b border-border/40 bg-card/50 backdrop-blur sticky top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
@@ -30,7 +30,7 @@ export default function MusicLibraryPage() {
                <div className="absolute inset-0 bg-primary/20 animate-pulse" />
                <Headphones className="h-10 w-10 text-primary relative z-10 animate-bounce" />
             </div>
-            <h1 className="text-4xl sm:text-5xl font-headline font-bold tracking-tight uppercase">Aura & Beats</h1>
+            <h1 className="text-4xl sm:text-5xl font-headline font-bold tracking-tight uppercase text-foreground">Aura & Beats</h1>
             <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px] sm:text-xs max-w-lg mx-auto leading-relaxed">
               Synchronized audio streams for high-performance productivity and creative focus.
             </p>
@@ -68,43 +68,9 @@ export default function MusicLibraryPage() {
         </div>
       </main>
 
-      {/* Horizontal Bottom Player Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-card/80 backdrop-blur-xl border-t border-border/40 z-50 flex items-center px-4 sm:px-8">
-        <div className="container mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
-              <Disc className="h-6 w-6 text-primary animate-spin-slow" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary truncate">Music Player</p>
-              <p className="text-[10px] text-muted-foreground font-medium truncate uppercase tracking-tight">System Audio Synchronization Active</p>
-            </div>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <div className="flex items-center gap-4">
-              <div className="h-1 w-48 sm:w-64 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary animate-progress-glow w-[65%]" />
-              </div>
-              <span className="text-[10px] font-mono text-muted-foreground">03:45 / 05:20</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Live Streaming</span>
-            </div>
-            <Button size="icon" variant="ghost" className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full">
-              <Play className="h-5 w-5 fill-primary" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
       <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold font-mono">
-          <p>© {new Date().getFullYear()} G storage audio systems. High fidelity synchronization active.</p>
+          <p>© {new Date().getFullYear()} File Storage Audio Systems. High fidelity synchronization active.</p>
         </div>
       </footer>
 
@@ -113,15 +79,8 @@ export default function MusicLibraryPage() {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        @keyframes progress-glow {
-          0%, 100% { opacity: 0.8; }
-          50% { opacity: 1; filter: brightness(1.2); }
-        }
         .animate-spin-slow {
           animation: spin-slow 8s linear infinite;
-        }
-        .animate-progress-glow {
-          animation: progress-glow 2s ease-in-out infinite;
         }
       `}</style>
     </div>

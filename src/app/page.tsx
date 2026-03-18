@@ -5,18 +5,15 @@ import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones, ArrowRight } from 'lucide-react';
+import { Database, Loader2, LayoutDashboard, UserCircle, ShieldCheck, Palette, Music, Headphones, ArrowRight, Disc, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 
 export default function Home() {
   const db = useFirestore();
-  const auth = useAuth();
-  const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
   
   const filesQuery = useMemoFirebase(() => {
@@ -43,7 +40,7 @@ export default function Home() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group shrink-0">
             <Database className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
-            <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">G <span className="text-primary">storage</span></span>
+            <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">File <span className="text-primary">Storage</span></span>
           </Link>
           <nav className="flex items-center gap-1.5 sm:gap-4">
             <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Music Player">
@@ -92,14 +89,6 @@ export default function Home() {
               <h1 className="text-3xl sm:text-4xl font-headline font-bold mb-2 text-foreground uppercase tracking-tight">File Storage</h1>
               <p className="text-muted-foreground text-sm sm:text-base font-medium">Securely browsing the global digital asset vault.</p>
             </div>
-            
-            <div className="flex items-center gap-3">
-              {!isLoading && files && (
-                <div className="inline-flex text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
-                  {files.length} units active
-                </div>
-              )}
-            </div>
           </div>
           
           {isLoading ? (
@@ -137,37 +126,48 @@ export default function Home() {
         </section>
       </main>
 
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 animate-in fade-in slide-in-from-right-12 slide-in-from-bottom-12 zoom-in-95 duration-1000 ease-out max-w-[calc(100vw-2rem)] sm:max-w-md">
-        <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-2 pr-4 rounded-xl shadow-2xl flex items-center gap-3 group hover:ring-2 hover:ring-primary/40 transition-all duration-500 sm:hover:scale-[1.02] sm:hover:-translate-y-1">
-          <div className="relative shrink-0">
-            <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-primary/20 shadow-inner group-hover:border-primary/50 transition-colors">
-              <AvatarImage src={adminPhoto} />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 border-2 border-card rounded-full shadow-sm" title="Online" />
-          </div>
-          <div className="flex flex-col items-start text-left overflow-hidden">
-            <div className="flex items-center gap-1.5 overflow-hidden w-full">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
-              <span className="text-[11px] sm:text-xs font-bold tracking-tight truncate group-hover:text-primary transition-colors">{adminName}</span>
+      {/* Floating Bottom Music Bar on Home */}
+      <div className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-40 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <Link href="/music" className="block">
+          <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.01]">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                <Disc className="h-6 w-6 text-primary animate-spin-slow" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary truncate">Music Player</p>
+                <p className="text-[9px] text-muted-foreground font-medium truncate uppercase tracking-tight">System Audio Synchronization Active</p>
+              </div>
             </div>
-            <span className="text-[8px] sm:text-[9px] text-muted-foreground font-bold uppercase tracking-widest line-clamp-1">{adminBio}</span>
-          </div>
-          {user && (
-            <div className="flex items-center gap-1 pl-2 border-l border-border/40 shrink-0">
-              <Link href="/admin" className="p-2 bg-primary/10 rounded-lg text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" title="Admin Dashboard">
-                <LayoutDashboard className="h-4 w-4" />
-              </Link>
+            
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Stream Ready</span>
+              </div>
+              <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground group-hover:scale-110 transition-transform">
+                <Play className="h-5 w-5 fill-primary-foreground" />
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        </Link>
       </div>
 
       <footer className="border-t border-border/40 py-8 sm:py-12 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold font-mono">
-          <p>© {new Date().getFullYear()} G storage secure systems. Encrypted connection active.</p>
+          <p>© {new Date().getFullYear()} File Storage Secure Systems. Encrypted connection active.</p>
         </div>
       </footer>
+
+      <style jsx global>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
