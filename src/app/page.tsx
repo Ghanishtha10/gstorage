@@ -46,6 +46,11 @@ export default function Home() {
             <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">G <span className="text-primary">storage</span></span>
           </Link>
           <nav className="flex items-center gap-1.5 sm:gap-4">
+            <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Music Player">
+              <Link href="/music">
+                <Headphones className="h-4 w-4" />
+              </Link>
+            </Button>
             <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Customize Theme">
               <Link href="/themes">
                 <Palette className="h-4 w-4" />
@@ -108,7 +113,6 @@ export default function Home() {
                 <ContentCard key={file.id} file={file} index={index} />
               ))}
               
-              {/* Music Player Button positioned at the end of the files grid */}
               <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 aspect-video sm:aspect-auto">
                 <Link href="/music" className="absolute inset-0 z-10" aria-label="Open Music Player" />
                 <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
