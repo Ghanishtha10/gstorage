@@ -6,9 +6,8 @@ import { ArrowLeft, Music, Headphones, Volume2, Disc, Play, Clock, Share2, Heart
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 
-// Manually curated track list inspired by the requested playlist
+// Manually curated track list inspired by the requested playlist for high-fidelity UI
 const TRACKS = [
   { id: 1, title: "Midnight Coffee", artist: "Lofi Girl", duration: "2:45" },
   { id: 2, title: "Rainy Window", artist: "Cloudy Beats", duration: "3:12" },
@@ -30,16 +29,6 @@ const TRACKS = [
   { id: 18, title: "Deep Focus", artist: "Concentration", duration: "4:40" },
   { id: 19, title: "Late Night Drive", artist: "Highway", duration: "3:50" },
   { id: 20, title: "Quiet Library", artist: "Bookworm", duration: "3:00" },
-  { id: 21, title: "Soft Rainfall", artist: "Stormy", duration: "5:30" },
-  { id: 22, title: "Gentle Piano", artist: "Classical Lofi", duration: "3:10" },
-  { id: 23, title: "Vinyl Crackle", artist: "Old School", duration: "2:55" },
-  { id: 24, title: "Floating Clouds", artist: "Atmosphere", duration: "4:15" },
-  { id: 25, title: "Secret Garden", artist: "Hidden", duration: "3:35" },
-  { id: 26, title: "Moonlight Sonata (Lofi)", artist: "Classical Beats", duration: "4:00" },
-  { id: 27, title: "Sakura Petals", artist: "Tokyo Vibes", duration: "2:50" },
-  { id: 28, title: "Midnight Subway", artist: "City Pulse", duration: "3:20" },
-  { id: 29, title: "Lost in Thought", artist: "Pensive", duration: "3:45" },
-  { id: 30, title: "Starlit Path", artist: "Night Sky", duration: "3:10" },
 ];
 
 export default function MusicLibraryPage() {
@@ -60,17 +49,33 @@ export default function MusicLibraryPage() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12">
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="text-center space-y-2 mb-8">
             <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/5 group relative overflow-hidden">
                <Headphones className="h-8 w-8 text-primary relative z-10 animate-bounce" />
             </div>
-            <h1 className="text-4xl font-headline font-bold tracking-tight uppercase text-foreground">Aura & Beats</h1>
+            <h1 className="text-4xl font-headline font-bold tracking-tight uppercase text-foreground">File Storage Player</h1>
             <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px] max-w-lg mx-auto">
-              Securely streaming your digital audio collection.
+              Securely browsing the global digital asset vault.
             </p>
           </div>
 
+          {/* Spotify Official Embed */}
+          <div className="flex justify-center w-full">
+            <iframe 
+              style={{ borderRadius: '12px', border: 'none' }} 
+              src="https://open.spotify.com/embed/playlist/7A0Jnb8AqB669RawoU8Tll?utm_source=generator&theme=0" 
+              width="100%" 
+              height="600" 
+              frameBorder="0" 
+              allowFullScreen={true} 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+              className="shadow-2xl shadow-primary/10 max-w-4xl"
+            ></iframe>
+          </div>
+
+          {/* Manual Track List UI for consistency */}
           <div className="w-full">
             <Card className="bg-card/50 border-border/40 overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/5">
               <CardHeader className="bg-muted/10 border-b border-border/10 pb-4 pt-4 px-6">
@@ -88,7 +93,7 @@ export default function MusicLibraryPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[650px] w-full px-6">
+                <ScrollArea className="h-[500px] w-full px-6">
                   <div className="space-y-1 py-4">
                     {TRACKS.map((track) => (
                       <div 
@@ -116,18 +121,10 @@ export default function MusicLibraryPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="text-center py-8">
-                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.3em] opacity-40">
-                        End of digital stream logs
-                      </p>
-                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
             </Card>
-            <p className="mt-4 text-[9px] text-muted-foreground text-center uppercase tracking-widest font-bold">
-              The interface is currently synchronized with the lofi digital repository.
-            </p>
           </div>
         </div>
       </main>
