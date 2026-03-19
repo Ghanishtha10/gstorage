@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFirestore, useMemoFirebase, useDoc, useUser } from '@/firebase';
@@ -8,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShieldCheck, UserCircle, Github, Twitter, MessageSquare, Settings, ArrowLeft, Globe } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 
 export default function AdminInfoPage() {
   const db = useFirestore();
@@ -37,11 +35,11 @@ export default function AdminInfoPage() {
   const adminPhoto = profile?.photoURL || `https://picsum.photos/seed/admin/300/300`;
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8 md:p-12 flex flex-col items-center selection:bg-primary/30">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 blur-[120px] rounded-full" />
+    <div className="min-h-screen bg-background p-4 sm:p-8 md:p-12 flex flex-col items-center selection:bg-primary/30 relative overflow-x-hidden">
+      {/* Dynamic Background Gradient */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-gradient-to-br from-primary/30 to-transparent blur-[140px] rounded-full animate-pulse duration-[10s]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-gradient-to-tl from-secondary/20 to-transparent blur-[140px] rounded-full animate-pulse duration-[8s]" />
       </div>
 
       <div className="w-full max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -87,14 +85,10 @@ export default function AdminInfoPage() {
 
           {/* Main Content section */}
           <div className="lg:col-span-8 space-y-8">
-            <Card className="bg-card/40 backdrop-blur-xl border-border/40 rounded-[2rem] overflow-hidden shadow-2xl shadow-primary/5">
-              <CardContent className="p-8 sm:p-10 space-y-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-primary">
-                    <Globe className="h-5 w-5" />
-                    <h3 className="text-xs font-bold uppercase tracking-[0.3em]">Administrative Narrative</h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm sm:text-lg leading-relaxed whitespace-pre-wrap font-medium">
+            <Card className="bg-card/40 backdrop-blur-xl border-border/40 rounded-[2rem] overflow-hidden shadow-2xl shadow-primary/5 border-t-primary/20">
+              <CardContent className="p-8 sm:p-10 space-y-10">
+                <div className="space-y-6">
+                  <p className="text-muted-foreground text-sm sm:text-xl leading-relaxed whitespace-pre-wrap font-medium">
                     {profile?.aboutMe || "The lead administrator of the File Storage secure digital repository. Managing data integrity and security protocols with precision and a commitment to digital privacy."}
                   </p>
                 </div>
@@ -165,4 +159,3 @@ export default function AdminInfoPage() {
     </div>
   );
 }
-

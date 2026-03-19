@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
@@ -47,7 +46,7 @@ export function AdminIdentityBar() {
             </div>
           </div>
           
-          <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transition-all">
+          <div className="ml-auto opacity-70 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-1">
             <ExternalLink className="h-4 w-4 text-primary" />
           </div>
         </div>
@@ -55,4 +54,3 @@ export function AdminIdentityBar() {
     </div>
   );
 }
-
