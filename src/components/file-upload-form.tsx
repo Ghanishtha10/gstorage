@@ -39,6 +39,13 @@ export function FileUploadForm() {
     }
   }, [file]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setFile(selected);
+    }
+  };
+
   const uploadToBlob = (targetFile: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
