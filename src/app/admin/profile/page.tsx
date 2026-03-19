@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -7,6 +6,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCircle, Save, ShieldCheck, Camera, X, MessageSquare, Twitter, Github } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -147,7 +147,7 @@ export default function AdminProfilePage() {
             </div>
             <div className="text-center space-y-1 overflow-hidden w-full">
               <p className="font-bold text-lg truncate px-2">{displayName || 'Master Admin'}</p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider line-clamp-2 px-4">{bio || 'System Administrator'}</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider line-clamp-3 px-4">{bio || 'System Administrator'}</p>
             </div>
           </CardContent>
         </Card>
@@ -159,7 +159,7 @@ export default function AdminProfilePage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSave} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</Label>
                   <input 
@@ -171,52 +171,54 @@ export default function AdminProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Short Bio</Label>
-                  <input 
+                  <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">About Me (Bio Paragraph)</Label>
+                  <Textarea 
                     id="bio" 
                     value={bio} 
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="e.g. Lead Developer & Architect"
-                    className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="Tell the world about your role and expertise..."
+                    className="min-h-[120px] rounded-xl border border-input bg-muted/30 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-primary border-l-2 border-primary pl-3">Social Connectors</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <MessageSquare className="h-3 w-3" /> Discord Invite
+                      <MessageSquare className="h-3 w-3" /> Discord Invite URL
                     </Label>
                     <input 
                       value={discord} 
                       onChange={(e) => setDiscord(e.target.value)}
-                      placeholder="https://discord.gg/..."
+                      placeholder="https://discord.gg/yourserver"
                       className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Twitter className="h-3 w-3" /> Twitter URL
-                    </Label>
-                    <input 
-                      value={twitter} 
-                      onChange={(e) => setTwitter(e.target.value)}
-                      placeholder="https://twitter.com/..."
-                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Github className="h-3 w-3" /> GitHub URL
-                    </Label>
-                    <input 
-                      value={github} 
-                      onChange={(e) => setGithub(e.target.value)}
-                      placeholder="https://github.com/..."
-                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <Twitter className="h-3 w-3" /> Twitter Profile
+                      </Label>
+                      <input 
+                        value={twitter} 
+                        onChange={(e) => setTwitter(e.target.value)}
+                        placeholder="https://twitter.com/username"
+                        className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <Github className="h-3 w-3" /> GitHub Profile
+                      </Label>
+                      <input 
+                        value={github} 
+                        onChange={(e) => setGithub(e.target.value)}
+                        placeholder="https://github.com/username"
+                        className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
