@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { LayoutDashboard, Upload, LogOut, Database, UserCircle, Home, ShieldCheck, Music } from 'lucide-react';
+import { LayoutDashboard, Upload, LogOut, Database, UserCircle, Home, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +14,6 @@ import { doc } from 'firebase/firestore';
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
   { label: 'Upload', icon: Upload, href: '/admin/upload' },
-  { label: 'Music Library', icon: Music, href: '/music' },
   { label: 'Profile Settings', icon: UserCircle, href: '/admin/profile' },
   { label: 'Security', icon: ShieldCheck, href: '/admin/security' },
   { label: 'Files Gallery', icon: Home, href: '/' },

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AdminSidebar } from '@/components/admin-sidebar';
@@ -6,11 +5,12 @@ import { MobileNav } from '@/components/mobile-nav';
 import { useUser, useAuth, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, Database, LogOut } from 'lucide-react';
+import { Loader2, Database, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function AdminLayout({
   children,
@@ -53,6 +53,9 @@ export default function AdminLayout({
 
   if (!user) return null;
 
+  const adminName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Master Admin';
+  const adminPhoto = profile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
+
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden fixed inset-0">
       <AdminSidebar />
@@ -68,20 +71,30 @@ export default function AdminLayout({
             </Link>
           </div>
           
-          <div className="ml-auto flex items-center gap-2 sm:gap-4 shrink-0">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
-              <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">System Online</span>
+          <div className="ml-auto flex items-center gap-3 sm:gap-6 shrink-0">
+            <div className="hidden lg:flex flex-col items-end">
+              <span className="text-xs font-bold leading-none">{adminName}</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Session Secure</span>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-9 w-9 text-destructive hover:bg-destructive/10" 
-              onClick={handleLogout}
-              title="Logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            
+            <div className="flex items-center gap-2 sm:gap-4 pl-3 sm:pl-4 border-l border-border/40">
+              <Link href="/admin/profile">
+                <Avatar className="h-9 w-9 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all duration-300">
+                  <AvatarImage src={adminPhoto} />
+                  <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
+              </Link>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-full" 
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </header>
 
