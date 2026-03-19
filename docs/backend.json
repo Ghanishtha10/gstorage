@@ -25,7 +25,8 @@
       "description": "Public administrative profile details.",
       "properties": {
         "displayName": { "type": "string" },
-        "bio": { "type": "string" },
+        "bio": { "type": "string", "description": "Short tagline or role title." },
+        "aboutMe": { "type": "string", "description": "Detailed multi-line paragraph." },
         "photoURL": { "type": "string", "format": "uri" },
         "discord": { "type": "string" },
         "twitter": { "type": "string" },

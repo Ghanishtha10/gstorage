@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserCircle, Save, ShieldCheck, Camera, X, MessageSquare, Twitter, Github } from 'lucide-react';
+import { Loader2, UserCircle, Save, ShieldCheck, Camera, X, MessageSquare, Twitter, Github, Type } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function AdminProfilePage() {
@@ -25,6 +26,7 @@ export default function AdminProfilePage() {
 
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [aboutMe, setAboutMe] = useState('');
   const [photoURL, setPhotoURL] = useState('');
   const [discord, setDiscord] = useState('');
   const [twitter, setTwitter] = useState('');
@@ -36,6 +38,7 @@ export default function AdminProfilePage() {
     if (profile) {
       setDisplayName(profile.displayName || '');
       setBio(profile.bio || '');
+      setAboutMe(profile.aboutMe || '');
       setPhotoURL(profile.photoURL || '');
       setDiscord(profile.discord || '');
       setTwitter(profile.twitter || '');
@@ -83,6 +86,7 @@ export default function AdminProfilePage() {
       await setDoc(doc(db, 'public_profiles', 'admin'), {
         displayName,
         bio,
+        aboutMe,
         photoURL: finalPhotoURL,
         discord,
         twitter,
@@ -121,7 +125,7 @@ export default function AdminProfilePage() {
       <div className="space-y-1">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Security Clearance: Level 5</span>
+          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Vault Shield Active</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-headline font-bold">Public Identity</h1>
         <p className="text-muted-foreground text-sm">Configure how you appear to the world in the storage vault.</p>
@@ -147,7 +151,7 @@ export default function AdminProfilePage() {
             </div>
             <div className="text-center space-y-1 overflow-hidden w-full">
               <p className="font-bold text-lg truncate px-2">{displayName || 'Master Admin'}</p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider line-clamp-3 px-4">{bio || 'System Administrator'}</p>
+              <p className="text-[10px] text-primary font-bold uppercase tracking-widest truncate px-4">{bio || 'System Architect'}</p>
             </div>
           </CardContent>
         </Card>
@@ -160,24 +164,37 @@ export default function AdminProfilePage() {
           <CardContent>
             <form onSubmit={handleSave} className="space-y-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</Label>
-                  <input 
-                    id="displayName" 
-                    value={displayName} 
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g. Satoshi Nakamoto"
-                    className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</Label>
+                    <input 
+                      id="displayName" 
+                      value={displayName} 
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="e.g. Satoshi Nakamoto"
+                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Role / Tagline</Label>
+                    <input 
+                      id="bio" 
+                      value={bio} 
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="e.g. Lead System Architect"
+                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">About Me (Bio Paragraph)</Label>
+                  <Label htmlFor="aboutMe" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">About Me (Narrative Paragraph)</Label>
                   <Textarea 
-                    id="bio" 
-                    value={bio} 
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell the world about your role and expertise..."
-                    className="min-h-[120px] rounded-xl border border-input bg-muted/30 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                    id="aboutMe" 
+                    value={aboutMe} 
+                    onChange={(e) => setAboutMe(e.target.value)}
+                    placeholder="Provide a detailed description of your role, expertise, and mission..."
+                    className="min-h-[160px] rounded-xl border border-input bg-muted/30 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
                   />
                 </div>
               </div>

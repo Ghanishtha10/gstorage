@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useFirestore, useMemoFirebase, useDoc, useUser } from '@/firebase';
@@ -31,7 +32,7 @@ export default function AdminInfoPage() {
   }
 
   const adminName = profile?.displayName || 'Master Admin';
-  const adminTag = profile?.displayName ? 'System Administrator' : 'Lead System Architect';
+  const adminTag = profile?.bio || 'Lead System Architect';
   const adminPhoto = profile?.photoURL || `https://picsum.photos/seed/admin/200/200`;
 
   return (
@@ -65,8 +66,8 @@ export default function AdminInfoPage() {
           <Card className="bg-card/50 backdrop-blur border-border/40 max-w-xl mx-auto rounded-3xl overflow-hidden shadow-2xl shadow-primary/5">
             <CardContent className="pt-8 pb-8 px-6 sm:px-10 text-center space-y-8">
               <div className="space-y-4">
-                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                  {profile?.bio || "The lead administrator of the File Storage secure digital repository. Managing data integrity and security protocols with precision."}
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-wrap text-center">
+                  {profile?.aboutMe || "The lead administrator of the File Storage secure digital repository. Managing data integrity and security protocols with precision."}
                 </p>
               </div>
 
