@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FileType } from '@/lib/types';
 import { suggestContentTags } from '@/ai/flows/suggest-content-tags-flow';
+import { Progress } from '@/components/ui/progress';
 
 export function FileUploadForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -38,16 +39,6 @@ export function FileUploadForm() {
     }
   }, [file]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-    }
-  };
-
-  /**
-   * Uploads a file using XMLHttpRequest to track progress.
-   */
   const uploadToBlob = (targetFile: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -101,7 +92,6 @@ export function FileUploadForm() {
       
       let thumbnailUrl = null;
       if (thumbFile) {
-        // 2. Server-side Upload (Thumbnail) - simpler fetch since these are usually small
         const thumbFormData = new FormData();
         thumbFormData.append('file', thumbFile);
         const thumbRes = await fetch('/api/upload', { method: 'POST', body: thumbFormData });
@@ -111,7 +101,7 @@ export function FileUploadForm() {
         }
       }
 
-      // 3. AI-Assisted Tagging
+      // 2. AI-Assisted Tagging
       let suggestedTags = ['General'];
       try {
         const aiResponse = await suggestContentTags({
@@ -126,7 +116,7 @@ export function FileUploadForm() {
         console.warn("AI metadata analysis skipped:", aiError);
       }
 
-      // 4. Synchronize Metadata to Firestore
+      // 3. Synchronize Metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || file.name,
         url: mainUrl,
@@ -237,6 +227,16 @@ export function FileUploadForm() {
               </div>
             </div>
 
+            {isUploading && (
+              <div className="space-y-2 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Transfer Progress</span>
+                  <span className="text-[10px] font-bold text-primary">{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">Visual Reference (Optional)</Label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -255,38 +255,25 @@ export function FileUploadForm() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <Button 
-                className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/5 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs relative overflow-hidden group border border-primary/20" 
-                onClick={handleUpload} 
-                disabled={isUploading || !file}
-              >
-                {/* Progress Fill Background */}
-                {isUploading && (
-                  <div 
-                    className="absolute inset-0 bg-primary/40 transition-all duration-300 ease-out" 
-                    style={{ width: `${uploadProgress}%` }}
-                  />
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 sm:h-16 rounded-2xl shadow-xl shadow-primary/20 transition-all uppercase tracking-[0.2em] text-[10px] sm:text-xs group" 
+              onClick={handleUpload} 
+              disabled={isUploading || !file}
+            >
+              <div className="flex items-center justify-center gap-2">
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Synchronizing Asset...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span>Initiate Transfer</span>
+                  </>
                 )}
-                
-                <div className="flex items-center justify-center gap-2 relative z-10">
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                      <span className="flex items-center gap-2">
-                        <Sparkles className="h-3 w-3 animate-pulse text-secondary" />
-                        Uploading... {uploadProgress}%
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span>Upload</span>
-                    </>
-                  )}
-                </div>
-              </Button>
-            </div>
+              </div>
+            </Button>
           </div>
         )}
       </CardContent>

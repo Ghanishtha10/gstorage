@@ -54,6 +54,7 @@ export default function AdminLayout({
   if (!user) return null;
 
   const adminName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Master Admin';
+  const adminTag = profile?.bio || 'System Architect';
   const adminPhoto = profile?.photoURL || user?.photoURL || `https://picsum.photos/seed/admin/100/100`;
 
   return (
@@ -76,7 +77,7 @@ export default function AdminLayout({
               <span className="text-xs font-bold leading-none">{adminName}</span>
               <div className="flex items-center gap-1">
                 <ShieldCheck className="h-2.5 w-2.5 text-primary" />
-                <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Admin Level 5</span>
+                <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">{adminTag}</span>
               </div>
             </div>
             
