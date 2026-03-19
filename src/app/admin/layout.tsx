@@ -5,7 +5,7 @@ import { MobileNav } from '@/components/mobile-nav';
 import { useUser, useAuth, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, Database, LogOut, UserCircle } from 'lucide-react';
+import { Loader2, Database, LogOut, UserCircle, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
@@ -72,9 +72,12 @@ export default function AdminLayout({
           </div>
           
           <div className="ml-auto flex items-center gap-3 sm:gap-6 shrink-0">
-            <div className="hidden lg:flex flex-col items-end">
+            <div className="hidden sm:flex flex-col items-end">
               <span className="text-xs font-bold leading-none">{adminName}</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Session Secure</span>
+              <div className="flex items-center gap-1">
+                <ShieldCheck className="h-2.5 w-2.5 text-primary" />
+                <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Admin Level 5</span>
+              </div>
             </div>
             
             <div className="flex items-center gap-2 sm:gap-4 pl-3 sm:pl-4 border-l border-border/40">
