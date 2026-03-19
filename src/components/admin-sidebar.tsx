@@ -1,10 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { LayoutDashboard, Upload, Database, UserCircle, Home, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Upload, Database, UserCircle, Home, ShieldCheck, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { label: 'Admin Home', icon: LayoutDashboard, href: '/admin' },
@@ -16,6 +19,13 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
 
   return (
     <aside className="w-64 border-r border-border/40 bg-card hidden md:flex flex-col h-full shrink-0">
@@ -27,9 +37,9 @@ export function AdminSidebar() {
         <ThemeToggle />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-4 mb-4">Operations</p>
-        <nav className="space-y-1.5">
+        <nav className="space-y-1.5 flex-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -49,6 +59,17 @@ export function AdminSidebar() {
             );
           })}
         </nav>
+
+        <div className="pt-4 mt-4 border-t border-border/40">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 px-4 py-3 h-auto rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 text-sm font-medium transition-all"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            Logout Session
+          </Button>
+        </div>
       </div>
     </aside>
   );
