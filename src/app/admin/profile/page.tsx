@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserCircle, Save, ShieldCheck, Camera, X } from 'lucide-react';
+import { Loader2, UserCircle, Save, ShieldCheck, Camera, X, MessageSquare, Twitter, Github } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function AdminProfilePage() {
@@ -25,6 +26,9 @@ export default function AdminProfilePage() {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [photoURL, setPhotoURL] = useState('');
+  const [discord, setDiscord] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [github, setGithub] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -33,6 +37,9 @@ export default function AdminProfilePage() {
       setDisplayName(profile.displayName || '');
       setBio(profile.bio || '');
       setPhotoURL(profile.photoURL || '');
+      setDiscord(profile.discord || '');
+      setTwitter(profile.twitter || '');
+      setGithub(profile.github || '');
     }
   }, [profile]);
 
@@ -77,6 +84,9 @@ export default function AdminProfilePage() {
         displayName,
         bio,
         photoURL: finalPhotoURL,
+        discord,
+        twitter,
+        github,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -118,7 +128,7 @@ export default function AdminProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <Card className="lg:col-span-1 bg-card border-border/40 h-fit">
+        <Card className="lg:col-span-1 bg-card border-border/40 h-fit sticky top-24">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Identity Preview</CardTitle>
           </CardHeader>
@@ -139,37 +149,78 @@ export default function AdminProfilePage() {
               <p className="font-bold text-lg truncate px-2">{displayName || 'Master Admin'}</p>
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider line-clamp-2 px-4">{bio || 'System Administrator'}</p>
             </div>
-            <Button variant="outline" size="sm" className="md:hidden w-full mt-2" onClick={() => fileInputRef.current?.click()}>Change Photo</Button>
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2 bg-card border-border/40">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-bold">Identity Details</CardTitle>
-            <CardDescription className="text-xs">Updates are applied globally and in real-time.</CardDescription>
+            <CardDescription className="text-xs">Update your global administrative presence and social connections.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSave} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</Label>
-                <input 
-                  id="displayName" 
-                  value={displayName} 
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g. Satoshi Nakamoto"
-                  className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="displayName" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</Label>
+                  <input 
+                    id="displayName" 
+                    value={displayName} 
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="e.g. Satoshi Nakamoto"
+                    className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Short Bio</Label>
+                  <input 
+                    id="bio" 
+                    value={bio} 
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="e.g. Lead Developer & Architect"
+                    className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="bio" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Short Bio</Label>
-                <input 
-                  id="bio" 
-                  value={bio} 
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="e.g. Lead Developer & Architect"
-                  className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
+
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary border-l-2 border-primary pl-3">Social Connectors</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <MessageSquare className="h-3 w-3" /> Discord Invite
+                    </Label>
+                    <input 
+                      value={discord} 
+                      onChange={(e) => setDiscord(e.target.value)}
+                      placeholder="https://discord.gg/..."
+                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Twitter className="h-3 w-3" /> Twitter URL
+                    </Label>
+                    <input 
+                      value={twitter} 
+                      onChange={(e) => setTwitter(e.target.value)}
+                      placeholder="https://twitter.com/..."
+                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Github className="h-3 w-3" /> GitHub URL
+                    </Label>
+                    <input 
+                      value={github} 
+                      onChange={(e) => setGithub(e.target.value)}
+                      placeholder="https://github.com/..."
+                      className="flex h-11 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Avatar Configuration</Label>
                 <div className="flex flex-col gap-3">
@@ -182,7 +233,7 @@ export default function AdminProfilePage() {
                         setPhotoFile(null);
                       }}
                       placeholder="Paste image URL here..."
-                      className="flex h-11 flex-1 rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-11 flex-1 rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       readOnly={!!photoFile}
                     />
                     <input 

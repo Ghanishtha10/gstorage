@@ -2,144 +2,49 @@
 {
   "entities": {
     "File": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "File",
       "type": "object",
       "description": "Represents an uploaded file, including its metadata and relationships to tags.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the File entity."
-        },
-        "filename": {
-          "type": "string",
-          "description": "The original name of the uploaded file."
-        },
-        "fileUrl": {
-          "type": "string",
-          "description": "The URL or path where the file content is stored.",
-          "format": "uri"
-        },
-        "mimeType": {
-          "type": "string",
-          "description": "The MIME type of the file (e.g., 'image/jpeg', 'application/pdf')."
-        },
-        "sizeBytes": {
-          "type": "number",
-          "description": "The size of the file in bytes."
-        },
-        "uploadedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the file was uploaded.",
-          "format": "date-time"
-        },
-        "tagIds": {
-          "type": "array",
-          "description": "References to Tag entities associated with this file.",
-          "items": {
-            "type": "string"
-          }
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "thumbnailUrl": { "type": "string", "format": "uri" },
+        "type": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "size": { "type": "number" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "uploadedAt": { "type": "string", "format": "date-time" },
+        "isDownloadable": { "type": "boolean" }
       },
-      "required": [
-        "id",
-        "filename",
-        "fileUrl",
-        "mimeType",
-        "sizeBytes",
-        "uploadedAt"
-      ]
+      "required": ["id", "name", "url", "type", "uploadedAt"]
     },
-    "Tag": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Tag",
+    "PublicProfile": {
+      "title": "PublicProfile",
       "type": "object",
-      "description": "Represents a content tag used for organizing files, potentially suggested by AI.",
+      "description": "Public administrative profile details.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Tag entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the tag."
-        },
-        "isAISuggested": {
-          "type": "boolean",
-          "description": "Indicates if this tag was suggested by AI."
-        }
-      },
-      "required": [
-        "id",
-        "name"
-      ]
-    },
-    "AppConfiguration": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AppConfiguration",
-      "type": "object",
-      "description": "Stores global application settings.",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "isDarkModeEnabled": {
-          "type": "boolean"
-        },
-        "selectedAccentColorHex": {
-          "type": "string"
-        },
-        "lastUpdatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "isDarkModeEnabled",
-        "selectedAccentColorHex",
-        "lastUpdatedAt"
-      ]
+        "displayName": { "type": "string" },
+        "bio": { "type": "string" },
+        "photoURL": { "type": "string", "format": "uri" },
+        "discord": { "type": "string" },
+        "twitter": { "type": "string" },
+        "github": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/files/{fileId}",
-        "definition": {
-          "entityName": "file",
-          "schema": {
-            "$ref": "#/backend/entities/File"
-          },
-          "description": "Metadata for uploaded files."
-        }
-      },
-      {
-        "path": "/tags/{tagId}",
-        "definition": {
-          "entityName": "tag",
-          "schema": {
-            "$ref": "#/backend/entities/Tag"
-          },
-          "description": "Content categorization tags."
-        }
-      },
-      {
-        "path": "/users/{userId}/appConfigurations",
-        "definition": {
-          "entityName": "appConfiguration",
-          "schema": {
-            "$ref": "#/backend/entities/AppConfiguration"
-          },
-          "description": "User preferences."
-        }
-      }
-    ]
+    "/files/{fileId}": {
+      "schema": { "$ref": "#/backend/entities/File" },
+      "description": "Metadata for uploaded files."
+    },
+    "/public_profiles/{profileId}": {
+      "schema": { "$ref": "#/backend/entities/PublicProfile" },
+      "description": "Public identity information."
+    }
   }
 }
