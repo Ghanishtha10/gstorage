@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from 'next/link';
 import { useCollection, useMemoFirebase, useUser, useFirestore, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { ContentCard } from '@/components/content-card';
-import { Database, Loader2, UserCircle, ShieldCheck, Palette, Headphones, ArrowRight, Disc, Play } from 'lucide-react';
+import { Database, Loader2, UserCircle, ShieldCheck, Palette, Headphones, ArrowRight, Disc, Play, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -40,7 +41,7 @@ export default function Home() {
             <Database className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
             <span className="font-headline font-bold text-lg sm:text-xl tracking-tight uppercase">File <span className="text-primary">Storage</span></span>
           </Link>
-          <nav className="flex items-center gap-1.5 sm:gap-4">
+          <nav className="flex items-center gap-1 sm:gap-2">
             <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary transition-all hover:bg-primary/10" title="Music Player">
               <Link href="/music">
                 <Headphones className="h-4 w-4" />
@@ -52,25 +53,27 @@ export default function Home() {
               </Link>
             </Button>
             <ThemeToggle />
-            {!isAuthLoading && (
-              user ? (
-                <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 border-l border-border/40">
-                  <div className="hidden md:flex flex-col items-end">
-                    <span className="text-xs font-bold leading-none">{adminName}</span>
-                    <Link href="/admin/profile" className="text-[10px] text-muted-foreground hover:text-primary transition-colors">Edit Profile</Link>
-                  </div>
+            
+            {!isAuthLoading && user && (
+              <div className="flex items-center gap-1 sm:gap-2 pl-2 border-l border-border/40">
+                <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full text-primary hover:bg-primary/10" title="Admin Control Panel">
                   <Link href="/admin">
-                    <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all duration-300 hover:scale-110">
-                      <AvatarImage src={adminPhoto} />
-                      <AvatarFallback><UserCircle className="h-5 w-5" /></AvatarFallback>
-                    </Avatar>
+                    <LayoutDashboard className="h-4 w-4" />
                   </Link>
-                </div>
-              ) : (
-                <Button variant="ghost" size="sm" asChild className="text-xs sm:text-sm font-bold tracking-tight hover:text-primary px-2 sm:px-3">
-                  <Link href="/login">Login</Link>
                 </Button>
-              )
+                <Link href="/admin/profile">
+                  <Avatar className="h-8 w-8 border border-primary/20 hover:ring-2 hover:ring-primary/50 transition-all duration-300">
+                    <AvatarImage src={adminPhoto} />
+                    <AvatarFallback><UserCircle className="h-4 w-4" /></AvatarFallback>
+                  </Avatar>
+                </Link>
+              </div>
+            )}
+
+            {!isAuthLoading && !user && (
+              <Button variant="ghost" size="sm" asChild className="text-xs sm:text-sm font-bold tracking-tight hover:text-primary px-3">
+                <Link href="/login">Login</Link>
+              </Button>
             )}
           </nav>
         </div>
@@ -100,13 +103,13 @@ export default function Home() {
                 <ContentCard key={file.id} file={file} index={index} />
               ))}
               
-              <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 aspect-video sm:aspect-auto min-h-[200px]">
+              <Card className="group relative overflow-hidden bg-primary/5 border-2 border-dashed border-primary/20 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 rounded-2xl flex flex-col items-center justify-center p-8 min-h-[200px]">
                 <Link href="/music" className="absolute inset-0 z-10" aria-label="Open Music Player" />
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
-                  <Headphones className="h-8 w-8 text-primary animate-bounce" />
+                <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                  <Headphones className="h-6 w-6 text-primary animate-bounce" />
                 </div>
                 <div className="text-center space-y-1">
-                  <h3 className="font-bold text-sm uppercase tracking-widest text-primary">Music Player</h3>
+                  <h3 className="font-bold text-xs uppercase tracking-widest text-primary">Music Player</h3>
                   <p className="text-[10px] text-muted-foreground font-medium flex items-center justify-center gap-1 group-hover:text-primary transition-colors">
                     Access Audio Library <ArrowRight className="h-3 w-3" />
                   </p>
@@ -150,7 +153,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-border/40 py-8 sm:py-12 bg-card/30 mt-auto">
+      <footer className="border-t border-border/40 py-8 bg-card/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold font-mono">
           <p>© {new Date().getFullYear()} File Storage Secure Systems. Encrypted connection active.</p>
         </div>

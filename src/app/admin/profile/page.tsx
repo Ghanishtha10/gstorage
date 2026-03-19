@@ -127,8 +127,8 @@ export default function AdminProfilePage() {
         <p className="text-muted-foreground text-sm">Configure how you appear to the world in the storage vault.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <Card className="lg:col-span-1 bg-card border-border/40 h-fit sticky top-24">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        <Card className="lg:col-span-1 bg-card border-border/40">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Identity Preview</CardTitle>
           </CardHeader>

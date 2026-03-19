@@ -5,8 +5,8 @@ import { useFirestore, useMemoFirebase, useDoc, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, UserCircle, Github, Twitter, MessageSquare, LayoutDashboard, Settings, ArrowLeft, Globe } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ShieldCheck, UserCircle, Github, Twitter, MessageSquare, Settings, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminInfoPage() {
@@ -92,15 +92,10 @@ export default function AdminInfoPage() {
         </div>
 
         {user && (
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto animate-in fade-in slide-in-from-top-4 duration-1000">
-            <Button asChild className="flex-1 h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-primary/20">
-              <Link href="/admin">
-                <LayoutDashboard className="h-4 w-4" /> Control Panel
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="flex-1 h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px] gap-2 border-primary/20 hover:border-primary/50">
+          <div className="flex justify-center animate-in fade-in slide-in-from-top-4 duration-1000">
+            <Button asChild variant="outline" className="h-12 rounded-2xl font-bold uppercase tracking-widest text-[10px] gap-2 border-primary/20 hover:border-primary/50 px-8">
               <Link href="/admin/profile">
-                <Settings className="h-4 w-4" /> Edit Profile
+                <Settings className="h-4 w-4" /> Edit Profile Settings
               </Link>
             </Button>
           </div>
