@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
+import { AdminIdentityBar } from '@/components/admin-identity-bar';
 
 export default function Home() {
   const db = useFirestore();
@@ -122,7 +122,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Music Bar - In Flow Positioning at the bottom of the section */}
           <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl mx-auto">
             <Link href="/music" className="block">
               <div className="bg-card/90 backdrop-blur-xl border border-border/40 p-3 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between group hover:ring-2 hover:ring-primary/40 transition-all duration-500 hover:scale-[1.01]">
@@ -156,6 +155,8 @@ export default function Home() {
           <p>© {new Date().getFullYear()} File Storage Secure Systems. Encrypted connection active.</p>
         </div>
       </footer>
+
+      <AdminIdentityBar />
 
       <style jsx global>{`
         @keyframes spin-slow {
