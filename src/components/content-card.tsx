@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -74,6 +73,8 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
     }
   };
 
+  const fileSizeMB = file.size > 0 ? (file.size / (1024 * 1024)).toFixed(2) : null;
+
   return (
     <Card 
       className={cn(
@@ -141,7 +142,7 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           <Icon className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
         </div>
         <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/70">
-          {timeAgo} • {(file.size / (1024 * 1024)).toFixed(2)} MB
+          {timeAgo} {fileSizeMB && `• ${fileSizeMB} MB`}
         </p>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">

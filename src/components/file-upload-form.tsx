@@ -51,13 +51,6 @@ export function FileUploadForm() {
     }
   }, [file]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-    }
-  };
-
   const uploadToBlob = (targetFile: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -243,7 +236,7 @@ export function FileUploadForm() {
                   <div className="overflow-hidden">
                     <p className="font-bold text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[300px]">{file.name}</p>
                     <p className="text-[9px] sm:text-[10px] font-bold uppercase text-primary tracking-widest">
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      Ready for synchronization
                     </p>
                   </div>
                 </div>
