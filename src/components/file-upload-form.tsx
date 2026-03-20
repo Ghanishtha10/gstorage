@@ -6,7 +6,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { Upload, X, Loader2, FileText, Image as ImageIcon, CheckCircle2, Video, Headphones, HardDrive, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -50,6 +50,13 @@ export function FileUploadForm() {
       else setFileType('other');
     }
   }, [file]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
 
   const uploadToBlob = (targetFile: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -111,7 +118,6 @@ export function FileUploadForm() {
         finalMimeType = file.type;
         finalSize = file.size;
       } else {
-        // Simple heuristic for remote links
         const ext = remoteUrl.split('.').pop()?.toLowerCase();
         if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '')) setFileType('image');
         else if (['mp4', 'webm', 'mov'].includes(ext || '')) setFileType('video');
@@ -131,12 +137,11 @@ export function FileUploadForm() {
         }
       }
 
-      // 2. AI-Assisted Tagging
       let suggestedTags = ['Linked Asset'];
       try {
         const aiResponse = await suggestContentTags({
           content: finalUrl,
-          mimeType: isLocal && file ? file.type : 'image/jpeg', // Default to image if remote for analysis
+          mimeType: isLocal && file ? file.type : 'image/jpeg',
           fileName: isLocal && file ? file.name : (displayName || 'remote-link')
         });
         if (aiResponse?.tags && aiResponse.tags.length > 0) {
@@ -146,7 +151,6 @@ export function FileUploadForm() {
         console.warn("AI metadata analysis skipped:", aiError);
       }
 
-      // 3. Synchronize Metadata to Firestore
       await addDoc(collection(db, 'files'), {
         name: displayName || (isLocal ? file?.name : 'Remote Link Asset'),
         url: finalUrl,
@@ -267,7 +271,6 @@ export function FileUploadForm() {
             </div>
           </TabsContent>
 
-          {/* Common Fields */}
           {(file || remoteUrl) && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
