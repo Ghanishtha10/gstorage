@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ContentFile } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FileText, Image as ImageIcon, Video, File, Trash2, Download, Headphones, Pencil, Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,12 +14,24 @@ import { cn } from '@/lib/utils';
 interface ContentCardProps {
   file: ContentFile;
   isAdmin?: boolean;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
   onDelete?: (file: ContentFile) => void;
   onEdit?: (file: ContentFile) => void;
   index?: number;
 }
 
-export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: ContentCardProps) {
+export function ContentCard({ 
+  file, 
+  isAdmin, 
+  selectable,
+  isSelected,
+  onToggleSelect,
+  onDelete, 
+  onEdit, 
+  index = 0 
+}: ContentCardProps) {
   const [mounted, setMounted] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -78,7 +91,8 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
   return (
     <Card 
       className={cn(
-        "group overflow-hidden transition-all duration-300 hover:ring-2 hover:ring-primary/50 bg-card border-border/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both",
+        "group overflow-hidden transition-all duration-300 bg-card border-border/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both",
+        isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:ring-2 hover:ring-primary/50"
       )}
       style={{ animationDelay: `${Math.min(index * 75, 600)}ms` }}
     >
@@ -97,6 +111,17 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           </div>
         )}
         
+        {/* Selection Checkbox */}
+        {selectable && isAdmin && (
+          <div className="absolute top-3 left-3 z-20">
+            <Checkbox 
+              checked={isSelected} 
+              onCheckedChange={onToggleSelect}
+              className="h-5 w-5 border-white/50 bg-black/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end gap-2 p-4">
            {isDownloadable ? (
              <Button 
@@ -129,14 +154,14 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
         )}
 
         {!isDownloadable && (
-          <div className="absolute top-2 left-2 z-10">
+          <div className="absolute top-2 right-2 z-10">
             <Badge variant="secondary" className="text-[8px] font-bold uppercase py-0 px-2 gap-1 bg-black/60 text-white border-none backdrop-blur-md">
               <Lock className="h-2 w-2" /> Private
             </Badge>
           </div>
         )}
       </div>
-      <CardHeader className="p-4 space-y-1">
+      <CardHeader className="p-4 space-y-1" onClick={selectable ? onToggleSelect : undefined}>
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm truncate max-w-[80%] group-hover:text-primary transition-colors" title={file.name}>{file.name}</h3>
           <Icon className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
@@ -145,7 +170,7 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
           {timeAgo} {fileSizeMB && `• ${fileSizeMB} MB`}
         </p>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
+      <CardContent className="px-4 pb-4 pt-0" onClick={selectable ? onToggleSelect : undefined}>
         <div className="flex flex-wrap gap-1.5">
           {file.tags?.map((tag) => (
             <Badge key={tag} variant="secondary" className="text-[9px] font-bold py-0.5 h-auto px-2 bg-muted/50 text-muted-foreground border-none group-hover:bg-primary/10 group-hover:text-primary transition-colors">
@@ -163,7 +188,7 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
             variant="ghost" 
             size="icon" 
             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={() => onEdit?.(file)}
+            onClick={(e) => { e.stopPropagation(); onEdit?.(file); }}
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -171,7 +196,7 @@ export function ContentCard({ file, isAdmin, onDelete, onEdit, index = 0 }: Cont
             variant="ghost" 
             size="icon" 
             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete?.(file)}
+            onClick={(e) => { e.stopPropagation(); onDelete?.(file); }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
