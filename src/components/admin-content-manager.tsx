@@ -64,7 +64,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   };
 
   const toggleAll = () => {
-    if (selectedIds.size === initialFiles.length) {
+    if (selectedIds.size === initialFiles.length && initialFiles.length > 0) {
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(initialFiles.map(f => f.id)));
@@ -75,7 +75,6 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     if (!db || !fileToDelete) return;
     setIsDeleting(true);
     try {
-      // Delete the file from Vercel Blob via our API
       await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,8 +92,8 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       await deleteDoc(doc(db, 'files', fileToDelete.id));
       
       toast({
-        title: "Asset Purged",
-        description: "The item has been removed from the vault and cloud storage.",
+        title: "Asset Removed",
+        description: "The item has been deleted from the vault.",
       });
       setFileToDelete(null);
       setSelectedIds(prev => {
@@ -106,8 +105,8 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
       console.error("Deletion error:", error);
       toast({
         variant: "destructive",
-        title: "Purge Failed",
-        description: "An error occurred while cleaning up the storage clusters.",
+        title: "Delete Failed",
+        description: "An error occurred while removing the file.",
       });
     } finally {
       setIsDeleting(false);
@@ -117,13 +116,10 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
   const handleBulkDelete = async () => {
     if (!db || selectedIds.size === 0) return;
     setIsBulkDeleting(true);
-    const idsToProcess = Array.from(selectedIds);
     const filesToProcess = initialFiles.filter(f => selectedIds.has(f.id));
 
     try {
-      // Process in batches or parallel
       await Promise.all(filesToProcess.map(async (file) => {
-        // Delete from blob
         await fetch('/api/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -138,21 +134,20 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           });
         }
 
-        // Delete from firestore
         await deleteDoc(doc(db, 'files', file.id));
       }));
 
       toast({
-        title: "Bulk Purge Complete",
-        description: `Successfully removed ${idsToProcess.length} items from the vault.`,
+        title: "Bulk Deletion Complete",
+        description: `Successfully removed ${selectedIds.size} items.`,
       });
       setSelectedIds(new Set());
       setShowBulkConfirm(false);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Bulk Purge Failed",
-        description: error.message || "An error occurred during multi-asset deletion.",
+        title: "Bulk Deletion Failed",
+        description: error.message || "An error occurred during deletion.",
       });
     } finally {
       setIsBulkDeleting(false);
@@ -178,14 +173,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
     });
 
     if (!response.ok) {
-      let errorMessage = 'Failed to transmit asset to server.';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (e) {
-        console.error('Edit upload error: Server returned non-JSON', e);
-      }
-      throw new Error(errorMessage);
+      throw new Error('Failed to transmit asset to server.');
     }
 
     const blob = await response.json();
@@ -215,15 +203,15 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
         isDownloadable: editDownloadable,
       });
       toast({
-        title: "Metadata Synced",
-        description: "Asset properties updated successfully.",
+        title: "Metadata Updated",
+        description: "Asset properties saved successfully.",
       });
       setFileToEdit(null);
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Sync Failed",
-        description: error.message || "Could not update asset properties.",
+        title: "Update Failed",
+        description: error.message || "Could not save changes.",
       });
     } finally {
       setIsUpdating(false);
@@ -234,18 +222,18 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-headline font-bold">Content Library</h2>
           <div className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
-            Secure Sync Active
+            {initialFiles.length} items
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {hasSelection && (
             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1">
                 {selectedIds.size} Selected
               </span>
               <Button 
@@ -254,12 +242,12 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
                 className="h-9 rounded-xl font-bold uppercase tracking-widest text-[10px] gap-2 px-4 shadow-lg shadow-destructive/10"
                 onClick={() => setShowBulkConfirm(true)}
               >
-                <Trash2 className="h-3.5 w-3.5" /> Purge Selected
+                <Trash2 className="h-3.5 w-3.5" /> Delete
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-9 rounded-xl font-bold uppercase tracking-widest text-[10px] text-muted-foreground hover:bg-muted"
+                className="h-9 rounded-xl font-bold uppercase tracking-widest text-[10px] text-muted-foreground"
                 onClick={() => setSelectedIds(new Set())}
               >
                 Cancel
@@ -279,15 +267,11 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               <><Square className="h-3.5 w-3.5" /> Select All</>
             )}
           </Button>
-
-          <div className="hidden sm:block text-sm text-muted-foreground font-medium pl-4 border-l border-border/40">
-            {initialFiles.length} nodes active
-          </div>
         </div>
       </div>
       
       {initialFiles.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {initialFiles.map((file) => (
             <ContentCard 
               key={file.id} 
@@ -302,19 +286,19 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-muted/20 border-2 border-dashed border-border/40 rounded-2xl">
+        <div className="text-center py-24 bg-muted/10 border-2 border-dashed border-border/40 rounded-2xl">
           <Database className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No active data streams detected.</p>
+          <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">The library is empty.</p>
         </div>
       )}
 
       {/* Delete Single Confirmation */}
       <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && !isDeleting && setFileToDelete(null)}>
-        <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
+        <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl max-w-[90vw] sm:max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl font-bold">Delete File?</AlertDialogTitle>
             <AlertDialogDescription className="font-medium text-muted-foreground">
-              This will permanently delete <span className="text-foreground font-bold">{fileToDelete?.name}</span> from storage. This action is irreversible.
+              Permanently remove <span className="text-foreground font-bold">{fileToDelete?.name}</span>? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
@@ -324,7 +308,7 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold uppercase tracking-widest text-[10px] h-11"
             >
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Confirm Delete"}
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -332,21 +316,21 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
 
       {/* Bulk Delete Confirmation */}
       <AlertDialog open={showBulkConfirm} onOpenChange={(open) => !open && !isBulkDeleting && setShowBulkConfirm(false)}>
-        <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
+        <AlertDialogContent className="rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl max-w-[90vw] sm:max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-destructive">Bulk Purge Initiation</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl font-bold text-destructive">Bulk Delete Initiation</AlertDialogTitle>
             <AlertDialogDescription className="font-medium text-muted-foreground">
-              You are about to permanently delete <span className="text-foreground font-bold">{selectedIds.size}</span> assets. All associated cloud data and metadata will be destroyed.
+              You are about to permanently delete <span className="text-foreground font-bold">{selectedIds.size}</span> files.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel disabled={isBulkDeleting} className="rounded-xl">Abort Operation</AlertDialogCancel>
+            <AlertDialogCancel disabled={isBulkDeleting} className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={(e) => { e.preventDefault(); handleBulkDelete(); }} 
               disabled={isBulkDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl font-bold uppercase tracking-widest text-[10px] h-11"
             >
-              {isBulkDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : `Confirm Bulk Purge (${selectedIds.size})`}
+              {isBulkDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : `Delete Selected (${selectedIds.size})`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -354,49 +338,43 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
 
       {/* Edit Dialog */}
       <Dialog open={!!fileToEdit} onOpenChange={(open) => !open && !isUpdating && setFileToEdit(null)}>
-        <DialogContent className="sm:max-w-md rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl">
+        <DialogContent className="sm:max-w-md rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl max-w-[95vw]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Asset Reconfiguration</DialogTitle>
-            <DialogDescription className="font-medium">Update the metadata for this digital asset.</DialogDescription>
+            <DialogTitle className="text-xl font-bold">Edit File Properties</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Identity Tag</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Name</Label>
               <input 
-                id="edit-name" 
                 value={editName} 
                 onChange={(e) => setEditName(e.target.value)} 
-                className="flex h-12 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
+                className="flex h-12 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm outline-none" 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-type" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Classification</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Type</Label>
               <input 
-                id="edit-type" 
                 value={editType} 
                 onChange={(e) => setEditType(e.target.value)} 
-                className="flex h-12 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
+                className="flex h-12 w-full rounded-xl border border-input bg-muted/30 px-4 py-2 text-sm outline-none" 
               />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/40">
               <div className="space-y-0.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground">Public Availability</Label>
-                <p className="text-[9px] text-muted-foreground">Allow public users to download this file.</p>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground">Downloadable</Label>
+                <p className="text-[9px] text-muted-foreground">Allow public downloads.</p>
               </div>
-              <Switch 
-                checked={editDownloadable} 
-                onCheckedChange={setEditDownloadable} 
-              />
+              <Switch checked={editDownloadable} onCheckedChange={setEditDownloadable} />
             </div>
 
-            <div className="space-y-4">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Thumbnail Override</Label>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Thumbnail</Label>
               <div className="flex gap-2">
-                <input type="file" className="hidden" ref={editThumbInputRef} accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) setThumbFile(f); }} />
-                <Button variant="outline" size="sm" className="h-11 w-full rounded-xl gap-2 border-primary/20 hover:border-primary/50 bg-muted/10" onClick={() => editThumbInputRef.current?.click()}>
-                  {editThumbFile ? <CheckCircle2 className="h-4 w-4 text-secondary" /> : <Camera className="h-4 w-4" />}
-                  {editThumbFile ? "New Reference Set" : "Update Visual Reference"}
+                <input type="file" className="hidden" ref={editThumbInputRef} accept="image/*" onChange={(e) => setEditThumbFile(e.target.files?.[0] || null)} />
+                <Button variant="outline" size="sm" className="h-11 w-full rounded-xl gap-2 bg-muted/10" onClick={() => editThumbInputRef.current?.click()}>
+                  {editThumbFile ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Camera className="h-4 w-4" />}
+                  <span className="truncate">{editThumbFile ? editThumbFile.name : "Change Thumbnail"}</span>
                 </Button>
                 {editThumbFile && <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive" onClick={() => setEditThumbFile(null)}><X className="h-5 w-5" /></Button>}
               </div>
@@ -404,9 +382,8 @@ export function AdminContentManager({ initialFiles }: AdminContentManagerProps) 
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" className="rounded-xl" onClick={() => setFileToEdit(null)} disabled={isUpdating}>Cancel</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="rounded-xl gap-2 font-bold uppercase tracking-widest text-[10px] h-11 px-6">
-              {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isUpdating ? "Syncing..." : "Commit Changes"}
+            <Button onClick={handleUpdate} disabled={isUpdating} className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-11 px-6">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

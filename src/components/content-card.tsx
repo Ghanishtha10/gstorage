@@ -91,10 +91,15 @@ export function ContentCard({
   return (
     <Card 
       className={cn(
-        "group overflow-hidden transition-all duration-300 bg-card border-border/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both",
-        isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:ring-2 hover:ring-primary/50"
+        "group overflow-hidden transition-all duration-300 bg-card border-border/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both cursor-default",
+        isSelected ? "ring-2 ring-primary bg-primary/5 scale-[0.98]" : "hover:ring-2 hover:ring-primary/50"
       )}
       style={{ animationDelay: `${Math.min(index * 75, 600)}ms` }}
+      onClick={(e) => {
+        if (selectable) {
+          onToggleSelect?.();
+        }
+      }}
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
         {previewSrc ? (
@@ -111,13 +116,17 @@ export function ContentCard({
           </div>
         )}
         
-        {/* Selection Checkbox */}
+        {/* Selection Checkbox (always visible if selected or on hover) */}
         {selectable && isAdmin && (
-          <div className="absolute top-3 left-3 z-20">
+          <div className={cn(
+            "absolute top-3 left-3 z-20 transition-opacity duration-200",
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}>
             <Checkbox 
               checked={isSelected} 
-              onCheckedChange={onToggleSelect}
+              onCheckedChange={(val) => onToggleSelect?.()}
               className="h-5 w-5 border-white/50 bg-black/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         )}
@@ -130,6 +139,7 @@ export function ContentCard({
                className="w-full gap-2 translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold"
                onClick={(e) => {
                  e.preventDefault();
+                 e.stopPropagation();
                  handleDownload();
                }}
                disabled={isDownloading}
@@ -140,7 +150,7 @@ export function ContentCard({
            ) : (
              <div className="w-full flex items-center justify-center gap-2 text-white/70 text-xs font-bold uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                <Lock className="h-3 w-3" />
-               Access Restricted
+               Private Access
              </div>
            )}
         </div>
@@ -152,28 +162,20 @@ export function ContentCard({
             </Badge>
           </div>
         )}
-
-        {!isDownloadable && (
-          <div className="absolute top-2 right-2 z-10">
-            <Badge variant="secondary" className="text-[8px] font-bold uppercase py-0 px-2 gap-1 bg-black/60 text-white border-none backdrop-blur-md">
-              <Lock className="h-2 w-2" /> Private
-            </Badge>
-          </div>
-        )}
       </div>
-      <CardHeader className="p-4 space-y-1" onClick={selectable ? onToggleSelect : undefined}>
+      <CardHeader className="p-4 space-y-1">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm truncate max-w-[80%] group-hover:text-primary transition-colors" title={file.name}>{file.name}</h3>
-          <Icon className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
+          <Icon className="h-4 w-4 text-primary/70" />
         </div>
         <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground/70">
           {timeAgo} {fileSizeMB && `• ${fileSizeMB} MB`}
         </p>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0" onClick={selectable ? onToggleSelect : undefined}>
+      <CardContent className="px-4 pb-4 pt-0">
         <div className="flex flex-wrap gap-1.5">
-          {file.tags?.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-[9px] font-bold py-0.5 h-auto px-2 bg-muted/50 text-muted-foreground border-none group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+          {file.tags?.slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="secondary" className="text-[9px] font-bold py-0.5 h-auto px-2 bg-muted/50 text-muted-foreground border-none">
               {tag}
             </Badge>
           ))}
@@ -188,7 +190,10 @@ export function ContentCard({
             variant="ghost" 
             size="icon" 
             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-            onClick={(e) => { e.stopPropagation(); onEdit?.(file); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              onEdit?.(file); 
+            }}
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -196,7 +201,10 @@ export function ContentCard({
             variant="ghost" 
             size="icon" 
             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={(e) => { e.stopPropagation(); onDelete?.(file); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              onDelete?.(file); 
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
